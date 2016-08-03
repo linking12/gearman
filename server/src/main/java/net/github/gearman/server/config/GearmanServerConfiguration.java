@@ -1,0 +1,236 @@
+package net.github.gearman.server.config;
+
+import org.slf4j.LoggerFactory;
+
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheck;
+import com.codahale.metrics.health.HealthCheckRegistry;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import net.github.gearman.common.interfaces.JobHandleFactory;
+import net.github.gearman.engine.core.JobManager;
+import net.github.gearman.engine.core.UniqueIdFactory;
+import net.github.gearman.engine.metrics.MetricsEngine;
+import net.github.gearman.engine.metrics.QueueMetrics;
+import net.github.gearman.engine.queue.factories.JobQueueFactory;
+import net.github.gearman.engine.storage.ExceptionStorageEngine;
+import net.github.gearman.engine.util.LocalJobHandleFactory;
+import net.github.gearman.engine.util.LocalUniqueIdFactory;
+import net.github.gearman.server.cluster.config.ClusterConfiguration;
+import net.github.gearman.server.cluster.core.ClusterJobManager;
+import net.github.gearman.server.cluster.queue.factories.HazelcastJobQueueFactory;
+import net.github.gearman.server.cluster.util.HazelcastJobHandleFactory;
+import net.github.gearman.server.cluster.util.HazelcastUniqueIdFactory;
+import net.github.gearman.server.util.JobQueueMonitor;
+import net.github.gearman.server.util.SnapshottingJobQueueMonitor;
+
+public class GearmanServerConfiguration implements ServerConfiguration {
+
+    private int                            port;
+    private int                            httpPort;
+    private boolean                        enableSSL;
+    private boolean                        debugging;
+    private String                         hostName;
+    private JobQueueFactory                jobQueueFactory;
+    private JobManager                     jobManager;
+    private JobQueueMonitor                jobQueueMonitor;
+    private ExceptionStorageEngine         exceptionStorageEngine;
+    private PersistenceEngineConfiguration persistenceEngine;
+    private ClusterConfiguration           clusterConfiguration;
+    private ExceptionStoreConfiguration    exceptionStoreConfiguration;
+    private JobHandleFactory               jobHandleFactory;
+    private UniqueIdFactory                uniqueIdFactory;
+    private MetricRegistry                 metricRegistry;
+    private QueueMetrics                   queueMetrics;
+    private HealthCheckRegistry            healthCheckRegistry;
+    private Object                         configLock = new Object();
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public void setHttpPort(int httpPort) {
+        this.httpPort = httpPort;
+    }
+
+    public boolean isEnableSSL() {
+        return enableSSL;
+    }
+
+    public void setEnableSSL(boolean enableSSL) {
+        this.enableSSL = enableSSL;
+    }
+
+    public void setDebugging(boolean debugging) {
+        this.debugging = debugging;
+
+        Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        if (debugging) {
+            root.setLevel(Level.DEBUG);
+        } else {
+            root.setLevel(Level.ERROR);
+        }
+    }
+
+    public PersistenceEngineConfiguration getPersistenceEngine() {
+        return persistenceEngine;
+    }
+
+    public void setPersistenceEngine(PersistenceEngineConfiguration persistenceEngine) {
+        this.persistenceEngine = persistenceEngine;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
+
+    public void setJobQueueFactory(JobQueueFactory jobQueueFactory) {
+        this.jobQueueFactory = jobQueueFactory;
+    }
+
+    public void setJobManager(JobManager jobManager) {
+        this.jobManager = jobManager;
+    }
+
+    public void setJobQueueMonitor(SnapshottingJobQueueMonitor jobQueueMonitor) {
+        this.jobQueueMonitor = jobQueueMonitor;
+    }
+
+    public void setExceptionStore(ExceptionStoreConfiguration exceptionStoreConfiguration) {
+        this.exceptionStoreConfiguration = exceptionStoreConfiguration;
+    }
+
+    public ExceptionStoreConfiguration getExceptionStore() {
+        return exceptionStoreConfiguration;
+    }
+
+    @Override
+    public int getPort() {
+        return port;
+    }
+
+    @Override
+    public int getHttpPort() {
+        return httpPort;
+    }
+
+    @Override
+    public boolean isSSLEnabled() {
+        return enableSSL;
+    }
+
+    @Override
+    public boolean isDebugging() {
+        return debugging;
+    }
+
+    @Override
+    public String getHostName() {
+        if (hostName == null) {
+            hostName = "localhost";
+        }
+
+        return hostName;
+    }
+
+    @Override
+    public JobQueueFactory getJobQueueFactory() {
+        if (jobQueueFactory == null && getPersistenceEngine() != null) {
+            jobQueueFactory = getPersistenceEngine().getJobQueueFactory(getMetricRegistry());
+        }
+
+        return jobQueueFactory;
+    }
+
+    @Override
+    public JobManager getJobManager() {
+        if (jobManager == null) {
+            jobManager = new JobManager(getJobQueueFactory(), getJobHandleFactory(), getUniqueIdFactory(),
+                                        getExceptionStorageEngine(), getQueueMetrics());
+        }
+
+        return jobManager;
+    }
+
+    @Override
+    public JobQueueMonitor getJobQueueMonitor() {
+        if (jobQueueMonitor == null) {
+            jobQueueMonitor = new SnapshottingJobQueueMonitor(getQueueMetrics());
+        }
+
+        return jobQueueMonitor;
+    }
+
+    @Override
+    public JobHandleFactory getJobHandleFactory() {
+        if (jobHandleFactory == null) {
+            jobHandleFactory = new LocalJobHandleFactory(getHostName());
+        }
+
+        return jobHandleFactory;
+    }
+
+    @Override
+    public UniqueIdFactory getUniqueIdFactory() {
+        if (uniqueIdFactory == null) {
+            uniqueIdFactory = new LocalUniqueIdFactory();
+        }
+
+        return uniqueIdFactory;
+    }
+
+    @Override
+    public MetricRegistry getMetricRegistry() {
+        if (metricRegistry == null) {
+            metricRegistry = new MetricRegistry();
+        }
+        return metricRegistry;
+    }
+
+    public QueueMetrics getQueueMetrics() {
+        synchronized (configLock) {
+            if (queueMetrics == null) {
+                queueMetrics = new MetricsEngine(getMetricRegistry());
+            }
+        }
+        return queueMetrics;
+    }
+
+    public ExceptionStorageEngine getExceptionStorageEngine() {
+        if (exceptionStorageEngine == null && getExceptionStore() != null) {
+            this.exceptionStorageEngine = getExceptionStore().getExceptionStorageEngine();
+        }
+
+        return exceptionStorageEngine;
+    }
+
+    public ClusterConfiguration getCluster() {
+        return clusterConfiguration;
+    }
+
+    // Setting the cluster configuration forces some settings...
+    public void setCluster(ClusterConfiguration clusterConfiguration) {
+        this.clusterConfiguration = clusterConfiguration;
+        this.jobQueueFactory = new HazelcastJobQueueFactory(clusterConfiguration.getHazelcastInstance());
+        this.jobHandleFactory = new HazelcastJobHandleFactory(clusterConfiguration.getHazelcastInstance(),
+                                                              getHostName());
+        this.uniqueIdFactory = new HazelcastUniqueIdFactory(clusterConfiguration.getHazelcastInstance());
+        this.jobManager = new ClusterJobManager(jobQueueFactory, jobHandleFactory, uniqueIdFactory,
+                                                clusterConfiguration.getHazelcastInstance(), queueMetrics);
+        this.jobQueueMonitor = new SnapshottingJobQueueMonitor(queueMetrics);
+    }
+
+    public HealthCheckRegistry getHealthCheckRegistry() {
+        if (healthCheckRegistry == null) {
+            healthCheckRegistry = new HealthCheckRegistry();
+            if (persistenceEngine != null) {
+                HealthCheck dataStoreHealthcheck = persistenceEngine.getHealthCheck();
+                if (dataStoreHealthcheck != null) {
+                    healthCheckRegistry.register(persistenceEngine.getEngine(), dataStoreHealthcheck);
+                }
+            }
+        }
+        return healthCheckRegistry;
+    }
+}
