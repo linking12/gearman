@@ -3,6 +3,13 @@ enableSSL: false
 debugging: true
 hostName: localhost
 persistenceEngine:
-  engine: memory
+  engine: mysql
+  dbSQL:
+    host: localhost
+    port: 3306
+    dbName: gearman
+    user: root
+    password: 899899AbC
+    table: gearman_00
 exceptionStore:
   engine: memory

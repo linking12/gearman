@@ -1,6 +1,6 @@
 package net.github.gearman.server.config.persistence;
 
-public class PostgreSQLConfiguration {
+public class DataBaseConfiguration {
     public String host;
     public int port;
     private String dbName;

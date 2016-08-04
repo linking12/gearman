@@ -6,7 +6,7 @@ import net.github.gearman.engine.storage.ExceptionStorageEngine;
 import net.github.gearman.engine.storage.MemoryExceptionStorageEngine;
 import net.github.gearman.engine.storage.NoopExceptionStorageEngine;
 import net.github.gearman.engine.storage.PostgresExceptionStorageEngine;
-import net.github.gearman.server.config.persistence.PostgreSQLConfiguration;
+import net.github.gearman.server.config.persistence.DataBaseConfiguration;
 
 public class ExceptionStoreConfiguration {
 
@@ -14,7 +14,7 @@ public class ExceptionStoreConfiguration {
     private static final String     ENGINE_POSTGRES    = "postgres";
     private static final int        MAX_MEMORY_ENTRIES = 5000;
 
-    private PostgreSQLConfiguration postgreSQL;
+    private DataBaseConfiguration postgreSQL;
     private String                  engine;
     private ExceptionStorageEngine  exceptionStorageEngine;
 
@@ -26,11 +26,11 @@ public class ExceptionStoreConfiguration {
         this.engine = engine;
     }
 
-    public PostgreSQLConfiguration getPostgreSQL() {
+    public DataBaseConfiguration getPostgreSQL() {
         return postgreSQL;
     }
 
-    public void setPostgreSQL(PostgreSQLConfiguration postgreSQL) {
+    public void setPostgreSQL(DataBaseConfiguration postgreSQL) {
         this.postgreSQL = postgreSQL;
     }
 

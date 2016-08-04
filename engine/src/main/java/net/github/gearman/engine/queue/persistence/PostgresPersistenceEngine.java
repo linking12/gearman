@@ -26,28 +26,26 @@ import net.github.gearman.engine.core.QueuedJob;
 
 public class PostgresPersistenceEngine implements PersistenceEngine {
 
-    private static Logger        LOG           = LoggerFactory.getLogger(PostgresPersistenceEngine.class);
-    private static final int     JOBS_PER_PAGE = 5000;
-    private final String         url;
-    private final String         tableName;
-    private final BoneCP         connectionPool;
+    private static Logger    LOG           = LoggerFactory.getLogger(PostgresPersistenceEngine.class);
+    private static final int JOBS_PER_PAGE = 5000;
+    private final String     url;
+    private final String     tableName;
+    private final BoneCP     connectionPool;
 
-    private final String         updateJobQuery;
-    private final String         insertJobQuery;
-    private final String         deleteJobQuery;
-    private final String         findJobQuery;
-    private final String         readAllJobsQuery;
-    private final String         countQuery;
-    private final String         findAllJobsForFunctionQuery;
-    private final String         findJobByHandleQuery;
-    private final MetricRegistry metricRegistry;
-    private final Timer          writeTimer, readTimer;
-    private final Counter        deleteCounter, writeCounter, pendingCounter;
+    private final String     updateJobQuery;
+    private final String     insertJobQuery;
+    private final String     deleteJobQuery;
+    private final String     findJobQuery;
+    private final String     readAllJobsQuery;
+    private final String     countQuery;
+    private final String     findAllJobsForFunctionQuery;
+    private final String     findJobByHandleQuery;
+    private final Timer      writeTimer, readTimer;
+    private final Counter    deleteCounter, writeCounter, pendingCounter;
 
     public PostgresPersistenceEngine(final String hostname, final int port, final String database, final String user,
                                      final String password, final String tableName,
                                      final MetricRegistry metricRegistry) throws SQLException{
-        this.metricRegistry = metricRegistry;
         this.pendingCounter = metricRegistry.counter("postgresql.pending");
         this.writeTimer = metricRegistry.timer("postgresql.write");
         this.readTimer = metricRegistry.timer("postgresql.read");

@@ -7,23 +7,25 @@ import net.github.gearman.engine.exceptions.JobQueueFactoryException;
 import net.github.gearman.engine.healthchecks.RedisHealthCheck;
 import net.github.gearman.engine.queue.factories.JobQueueFactory;
 import net.github.gearman.engine.queue.factories.MemoryJobQueueFactory;
+import net.github.gearman.engine.queue.factories.MysqlPersistedJobQueueFactory;
 import net.github.gearman.engine.queue.factories.PostgreSQLPersistedJobQueueFactory;
 import net.github.gearman.engine.queue.factories.RedisPersistedJobQueueFactory;
-import net.github.gearman.server.config.persistence.PostgreSQLConfiguration;
+import net.github.gearman.server.config.persistence.DataBaseConfiguration;
 import net.github.gearman.server.config.persistence.RedisConfiguration;
 import redis.clients.jedis.Jedis;
 
 public class PersistenceEngineConfiguration {
 
-    private static final String     ENGINE_MEMORY   = "memory";
-    private static final String     ENGINE_REDIS    = "redis";
-    private static final String     ENGINE_POSTGRES = "postgres";
+    private static final String   ENGINE_MEMORY   = "memory";
+    private static final String   ENGINE_REDIS    = "redis";
+    private static final String   ENGINE_POSTGRES = "postgres";
+    private static final String   ENGINE_MYQL     = "mysql";
 
-    private RedisConfiguration      redis;
-    private PostgreSQLConfiguration postgreSQL;
+    private RedisConfiguration    redis;
+    private DataBaseConfiguration dbSQL;
 
-    private String                  engine;
-    private JobQueueFactory         jobQueueFactory;
+    private String                engine;
+    private JobQueueFactory       jobQueueFactory;
 
     public String getEngine() {
         return engine;
@@ -41,12 +43,12 @@ public class PersistenceEngineConfiguration {
         this.redis = redis;
     }
 
-    public PostgreSQLConfiguration getPostgreSQL() {
-        return postgreSQL;
+    public DataBaseConfiguration getDbSQL() {
+        return dbSQL;
     }
 
-    public void setPostgreSQL(PostgreSQLConfiguration postgreSQL) {
-        this.postgreSQL = postgreSQL;
+    public void setDbSQL(DataBaseConfiguration dbSQL) {
+        this.dbSQL = dbSQL;
     }
 
     public JobQueueFactory getJobQueueFactory(MetricRegistry metricRegistry) {
@@ -57,12 +59,20 @@ public class PersistenceEngineConfiguration {
                     break;
                 case ENGINE_POSTGRES:
                     try {
-                        jobQueueFactory = new PostgreSQLPersistedJobQueueFactory(postgreSQL.getHost(),
-                                                                                 postgreSQL.getPort(),
-                                                                                 postgreSQL.getDbName(),
-                                                                                 postgreSQL.getUser(),
-                                                                                 postgreSQL.getPassword(),
-                                                                                 postgreSQL.getTable(), metricRegistry);
+                        jobQueueFactory = new PostgreSQLPersistedJobQueueFactory(dbSQL.getHost(), dbSQL.getPort(),
+                                                                                 dbSQL.getDbName(), dbSQL.getUser(),
+                                                                                 dbSQL.getPassword(), dbSQL.getTable(),
+                                                                                 metricRegistry);
+                    } catch (JobQueueFactoryException e) {
+                        jobQueueFactory = null;
+                    }
+                    break;
+                case ENGINE_MYQL:
+                    try {
+                        jobQueueFactory = new MysqlPersistedJobQueueFactory(dbSQL.getHost(), dbSQL.getPort(),
+                                                                            dbSQL.getDbName(), dbSQL.getUser(),
+                                                                            dbSQL.getPassword(), dbSQL.getTable(),
+                                                                            metricRegistry);
                     } catch (JobQueueFactoryException e) {
                         jobQueueFactory = null;
                     }
