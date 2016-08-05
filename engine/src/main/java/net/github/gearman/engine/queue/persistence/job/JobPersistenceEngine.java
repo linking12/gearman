@@ -5,7 +5,7 @@ import java.util.Collection;
 import net.github.gearman.common.Job;
 import net.github.gearman.engine.core.QueuedJob;
 
-public interface PersistenceEngine {
+public interface JobPersistenceEngine {
 
     public String getIdentifier();
 

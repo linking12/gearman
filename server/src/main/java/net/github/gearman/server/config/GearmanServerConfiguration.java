@@ -13,7 +13,8 @@ import net.github.gearman.engine.core.JobManager;
 import net.github.gearman.engine.core.UniqueIdFactory;
 import net.github.gearman.engine.metrics.MetricsEngine;
 import net.github.gearman.engine.metrics.QueueMetrics;
-import net.github.gearman.engine.queue.factories.JobQueueFactory;
+import net.github.gearman.engine.queue.factories.cronjob.CronJobQueueFactory;
+import net.github.gearman.engine.queue.factories.job.JobQueueFactory;
 import net.github.gearman.engine.storage.ExceptionStorageEngine;
 import net.github.gearman.engine.util.LocalJobHandleFactory;
 import net.github.gearman.engine.util.LocalUniqueIdFactory;
@@ -22,23 +23,25 @@ import net.github.gearman.server.util.SnapshottingJobQueueMonitor;
 
 public class GearmanServerConfiguration implements ServerConfiguration {
 
-    private int                            port;
-    private int                            httpPort;
-    private boolean                        enableSSL;
-    private boolean                        debugging;
-    private String                         hostName;
-    private JobQueueFactory                jobQueueFactory;
-    private JobManager                     jobManager;
-    private JobQueueMonitor                jobQueueMonitor;
-    private ExceptionStorageEngine         exceptionStorageEngine;
-    private PersistenceEngineConfiguration persistenceEngine;
-    private ExceptionStoreConfiguration    exceptionStoreConfiguration;
-    private JobHandleFactory               jobHandleFactory;
-    private UniqueIdFactory                uniqueIdFactory;
-    private MetricRegistry                 metricRegistry;
-    private QueueMetrics                   queueMetrics;
-    private HealthCheckRegistry            healthCheckRegistry;
-    private Object                         configLock = new Object();
+    private int                                   port;
+    private int                                   httpPort;
+    private boolean                               enableSSL;
+    private boolean                               debugging;
+    private String                                hostName;
+    private CronJobQueueFactory                   cronJobQueueFactory;
+    private JobQueueFactory                       jobQueueFactory;
+    private JobManager                            jobManager;
+    private JobQueueMonitor                       jobQueueMonitor;
+    private ExceptionStorageEngine                exceptionStorageEngine;
+    private JobPersistenceEngineConfiguration     jobPersistenceEngine;
+    private CronJobPersistenceEngineConfiguration cronJobpersistenceEngine;
+    private ExceptionStoreConfiguration           exceptionStoreConfiguration;
+    private JobHandleFactory                      jobHandleFactory;
+    private UniqueIdFactory                       uniqueIdFactory;
+    private MetricRegistry                        metricRegistry;
+    private QueueMetrics                          queueMetrics;
+    private HealthCheckRegistry                   healthCheckRegistry;
+    private Object                                configLock = new Object();
 
     public void setPort(int port) {
         this.port = port;
@@ -67,12 +70,20 @@ public class GearmanServerConfiguration implements ServerConfiguration {
         }
     }
 
-    public PersistenceEngineConfiguration getPersistenceEngine() {
-        return persistenceEngine;
+    public JobPersistenceEngineConfiguration getJobPersistenceEngine() {
+        return jobPersistenceEngine;
     }
 
-    public void setPersistenceEngine(PersistenceEngineConfiguration persistenceEngine) {
-        this.persistenceEngine = persistenceEngine;
+    public void setJobPersistenceEngine(JobPersistenceEngineConfiguration jobPersistenceEngine) {
+        this.jobPersistenceEngine = jobPersistenceEngine;
+    }
+
+    public CronJobPersistenceEngineConfiguration getCronJobpersistenceEngine() {
+        return cronJobpersistenceEngine;
+    }
+
+    public void setCronJobpersistenceEngine(CronJobPersistenceEngineConfiguration cronJobpersistenceEngine) {
+        this.cronJobpersistenceEngine = cronJobpersistenceEngine;
     }
 
     public void setHostName(String hostName) {
@@ -130,18 +141,27 @@ public class GearmanServerConfiguration implements ServerConfiguration {
 
     @Override
     public JobQueueFactory getJobQueueFactory() {
-        if (jobQueueFactory == null && getPersistenceEngine() != null) {
-            jobQueueFactory = getPersistenceEngine().getJobQueueFactory(getMetricRegistry());
+        if (jobQueueFactory == null && this.getJobPersistenceEngine() != null) {
+            jobQueueFactory = this.getJobPersistenceEngine().getJobQueueFactory(getMetricRegistry());
         }
 
         return jobQueueFactory;
     }
 
     @Override
+    public CronJobQueueFactory getCronJobQueueFactory() {
+        if (cronJobQueueFactory == null && this.getCronJobpersistenceEngine() != null) {
+            cronJobQueueFactory = this.getCronJobpersistenceEngine().getCronJobQueueFactory(getMetricRegistry());
+        }
+
+        return cronJobQueueFactory;
+    }
+
+    @Override
     public JobManager getJobManager() {
         if (jobManager == null) {
-            jobManager = new JobManager(getJobQueueFactory(), getJobHandleFactory(), getUniqueIdFactory(),
-                                        getExceptionStorageEngine(), getQueueMetrics());
+            jobManager = new JobManager(getJobQueueFactory(), getCronJobQueueFactory(), getJobHandleFactory(),
+                                        getUniqueIdFactory(), getExceptionStorageEngine(), getQueueMetrics());
         }
 
         return jobManager;
@@ -202,13 +222,14 @@ public class GearmanServerConfiguration implements ServerConfiguration {
     public HealthCheckRegistry getHealthCheckRegistry() {
         if (healthCheckRegistry == null) {
             healthCheckRegistry = new HealthCheckRegistry();
-            if (persistenceEngine != null) {
-                HealthCheck dataStoreHealthcheck = persistenceEngine.getHealthCheck();
+            if (jobPersistenceEngine != null) {
+                HealthCheck dataStoreHealthcheck = jobPersistenceEngine.getHealthCheck();
                 if (dataStoreHealthcheck != null) {
-                    healthCheckRegistry.register(persistenceEngine.getEngine(), dataStoreHealthcheck);
+                    healthCheckRegistry.register(jobPersistenceEngine.getEngine(), dataStoreHealthcheck);
                 }
             }
         }
         return healthCheckRegistry;
     }
+
 }

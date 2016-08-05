@@ -8,8 +8,8 @@ import com.codahale.metrics.MetricRegistry;
 import net.github.gearman.common.interfaces.JobHandleFactory;
 import net.github.gearman.engine.core.JobManager;
 import net.github.gearman.engine.core.UniqueIdFactory;
-import net.github.gearman.engine.queue.factories.JobQueueFactory;
-import net.github.gearman.engine.queue.factories.MemoryJobQueueFactory;
+import net.github.gearman.engine.queue.factories.job.JobQueueFactory;
+import net.github.gearman.engine.queue.factories.job.MemoryJobQueueFactory;
 import net.github.gearman.engine.storage.NoopExceptionStorageEngine;
 import net.github.gearman.engine.util.LocalJobHandleFactory;
 import net.github.gearman.engine.util.LocalUniqueIdFactory;
@@ -31,7 +31,7 @@ public class DefaultServerConfiguration extends GearmanServerConfiguration {
         this.jobHandleFactory = new LocalJobHandleFactory(getHostName());
         this.jobQueueFactory = new MemoryJobQueueFactory(registry);
         this.uniqueIdFactory = new LocalUniqueIdFactory();
-        this.jobManager = new JobManager(jobQueueFactory, jobHandleFactory, uniqueIdFactory,
+        this.jobManager = new JobManager(jobQueueFactory, getCronJobQueueFactory(), jobHandleFactory, uniqueIdFactory,
                                          new NoopExceptionStorageEngine(), getQueueMetrics());
         this.jobQueueMonitor = new SnapshottingJobQueueMonitor(getQueueMetrics());
     }

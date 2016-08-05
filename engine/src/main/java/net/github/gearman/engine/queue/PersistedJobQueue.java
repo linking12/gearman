@@ -27,13 +27,13 @@ import net.github.gearman.constants.JobPriority;
 import net.github.gearman.engine.core.QueuedJob;
 import net.github.gearman.engine.exceptions.PersistenceException;
 import net.github.gearman.engine.exceptions.QueueFullException;
-import net.github.gearman.engine.queue.persistence.job.PersistenceEngine;
+import net.github.gearman.engine.queue.persistence.job.JobPersistenceEngine;
 
 public class PersistedJobQueue implements JobQueue {
 
     private final Logger                           LOG        = LoggerFactory.getLogger(PersistedJobQueue.class);
 
-    private final PersistenceEngine                persistenceEngine;
+    private final JobPersistenceEngine                jobPersistenceEngine;
     private final String                           functionName;
 
     private final BlockingDeque<QueuedJob>         low        = new LinkedBlockingDeque<>();
@@ -47,10 +47,10 @@ public class PersistedJobQueue implements JobQueue {
     private final AtomicInteger                    maxQueueSize;
     private final Counter                          highCounter, midCounter, lowCounter, totalCounter;
 
-    public PersistedJobQueue(final String functionName, final PersistenceEngine persistenceEngine,
+    public PersistedJobQueue(final String functionName, final JobPersistenceEngine persistenceEngine,
                              final MetricRegistry metricRegistry){
         this.functionName = functionName;
-        this.persistenceEngine = persistenceEngine;
+        this.jobPersistenceEngine = persistenceEngine;
         this.maxQueueSize = new AtomicInteger(Integer.MAX_VALUE);
 
         this.highCounter = metricRegistry.counter(name("queue", metricName(), "high"));
@@ -139,7 +139,7 @@ public class PersistedJobQueue implements JobQueue {
             throw new QueueFullException();
         }
 
-        if (persistenceEngine.write(job)) {
+        if (jobPersistenceEngine.write(job)) {
             add(queuedJob);
         } else {
             // ! written to persistent store
@@ -176,7 +176,7 @@ public class PersistedJobQueue implements JobQueue {
         if (queuedJob == null) queuedJob = low.poll();
 
         if (queuedJob != null) {
-            Job job = persistenceEngine.findJob(queuedJob.functionName, queuedJob.uniqueID);
+            Job job = jobPersistenceEngine.findJob(queuedJob.functionName, queuedJob.uniqueID);
 
             allJobs.remove(job.getUniqueID());
 
@@ -253,7 +253,7 @@ public class PersistedJobQueue implements JobQueue {
             }
 
             // Remove from persistence engine
-            persistenceEngine.delete(job);
+            jobPersistenceEngine.delete(job);
         }
 
         if (removed) {
@@ -284,7 +284,7 @@ public class PersistedJobQueue implements JobQueue {
 
     @Override
     public Job findJobByUniqueId(String uniqueID) {
-        return persistenceEngine.findJob(this.functionName, uniqueID);
+        return jobPersistenceEngine.findJob(this.functionName, uniqueID);
     }
 
     @Override

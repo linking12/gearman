@@ -34,7 +34,9 @@ import net.github.gearman.common.packets.response.WorkWarningResponse;
 import net.github.gearman.constants.JobPriority;
 import net.github.gearman.constants.PacketType;
 import net.github.gearman.engine.core.JobManager;
+import net.github.gearman.engine.core.cronjob.CronJob;
 import net.github.gearman.engine.exceptions.EnqueueException;
+import net.github.gearman.engine.exceptions.InitException;
 
 /**
  * Serves as an interface between the packet handler and the job manager General flow: Netty - CODEC - PacketHandler -
@@ -138,19 +140,37 @@ public class NetworkManager {
         }
 
         // This could return an existing job, or the newly generated one
-        final Job inputJob = new Job(funcName, uniqueID, data, priority, isBackground, timeToRunDate);
-        try {
-            Job storedJob = jobManager.storeJobForClient(inputJob, client);
-
-            if (storedJob != null) {
-                client.setCurrentJob(storedJob);
-                client.send(createJobCreatedPacket(storedJob));
-            } else {
-                // TODO: send a failure/error packet?
+        Job tempJob = new Job(funcName, uniqueID, data, priority, isBackground, timeToRunDate);
+        if (timeToRunCronExpression != null) {
+            final CronJob cronJob = new CronJob(timeToRunCronExpression, tempJob);
+            cronJob.setJobManage(jobManager);
+            try {
+                cronJob.init();
+                Boolean storeSuccess = jobManager.storeCronJob(cronJob, client);
+                if (storeSuccess) {
+                    client.setCurrentJob(cronJob);
+                    client.send(createJobCreatedPacket(cronJob));
+                }
+            } catch (InitException e) {
+                // TODO: Send a failure / error packet?
             }
-        } catch (EnqueueException e) {
-            // TODO: Send a failure / error packet?
+
+        } else {
+            final Job inputJob = tempJob;
+            try {
+                Job storedJob = jobManager.storeJobForClient(inputJob, client);
+
+                if (storedJob != null) {
+                    client.setCurrentJob(storedJob);
+                    client.send(createJobCreatedPacket(storedJob));
+                } else {
+                    // TODO: send a failure/error packet?
+                }
+            } catch (EnqueueException e) {
+                // TODO: Send a failure / error packet?
+            }
         }
+
     }
 
     public void checkJobStatus(GetStatus getStatus, Channel channel) {

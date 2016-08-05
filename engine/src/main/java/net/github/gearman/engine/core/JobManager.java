@@ -17,6 +17,7 @@ import net.github.gearman.common.JobStatus;
 import net.github.gearman.common.interfaces.EngineClient;
 import net.github.gearman.common.interfaces.EngineWorker;
 import net.github.gearman.common.interfaces.JobHandleFactory;
+import net.github.gearman.engine.core.cronjob.CronJob;
 import net.github.gearman.engine.exceptions.EnqueueException;
 import net.github.gearman.engine.exceptions.IllegalJobStateTransitionException;
 import net.github.gearman.engine.exceptions.JobQueueFactoryException;
@@ -24,7 +25,8 @@ import net.github.gearman.engine.exceptions.PersistenceException;
 import net.github.gearman.engine.exceptions.QueueFullException;
 import net.github.gearman.engine.metrics.QueueMetrics;
 import net.github.gearman.engine.queue.JobQueue;
-import net.github.gearman.engine.queue.factories.JobQueueFactory;
+import net.github.gearman.engine.queue.factories.cronjob.CronJobQueueFactory;
+import net.github.gearman.engine.queue.factories.job.JobQueueFactory;
 import net.github.gearman.engine.storage.ExceptionStorageEngine;
 import net.github.gearman.engine.util.EqualsLock;
 
@@ -49,15 +51,16 @@ public class JobManager {
     private final Set<EngineWorker>                            workers;
     private final EqualsLock                                   lock        = new EqualsLock();
     private final JobQueueFactory                              jobQueueFactory;
+    private final CronJobQueueFactory                          cronJobQueueFactory;
     private final JobHandleFactory                             jobHandleFactory;
     private final UniqueIdFactory                              uniqueIdFactory;
     private final ExceptionStorageEngine                       exceptionStorageEngine;
 
     private final QueueMetrics                                 metrics;
 
-    public JobManager(JobQueueFactory jobQueueFactory, JobHandleFactory jobHandleFactory,
-                      UniqueIdFactory uniqueIdFactory, ExceptionStorageEngine exceptionStorageEngine,
-                      QueueMetrics queueMetrics){
+    public JobManager(JobQueueFactory jobQueueFactory, CronJobQueueFactory cronJobQueueFactory,
+                      JobHandleFactory jobHandleFactory, UniqueIdFactory uniqueIdFactory,
+                      ExceptionStorageEngine exceptionStorageEngine, QueueMetrics queueMetrics){
         this.activeJobHandles = new ConcurrentHashMap<>();
         this.activeUniqueIds = new ConcurrentHashMap<>();
         this.uniqueIdClients = new ConcurrentHashMap<>();
@@ -67,7 +70,7 @@ public class JobManager {
         this.jobWorker = new ConcurrentHashMap<>();
         this.workerPools = new ConcurrentHashMap<>();
         this.metrics = queueMetrics;
-
+        this.cronJobQueueFactory = cronJobQueueFactory;
         this.jobQueueFactory = jobQueueFactory;
         this.jobHandleFactory = jobHandleFactory;
         this.uniqueIdFactory = uniqueIdFactory;
@@ -202,6 +205,14 @@ public class JobManager {
             addClientForUniqueId(job.getUniqueID(), client);
         }
         return storeJob(job);
+    }
+
+    // 对于cronJob，仅存储即可，无需入队列
+    public boolean storeCronJob(CronJob cronJob, EngineClient client) {
+        if (!cronJob.isBackground()) {
+            addClientForUniqueId(cronJob.getUniqueID(), client);
+        }
+        return cronJobQueueFactory.getCronJobPersistenceEngine().write(cronJob);
     }
 
     public Job storeJob(Job job) throws EnqueueException {

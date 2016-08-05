@@ -16,7 +16,8 @@ import net.github.gearman.engine.core.JobManager;
 import net.github.gearman.engine.core.QueuedJob;
 import net.github.gearman.engine.exceptions.JobQueueFactoryException;
 import net.github.gearman.engine.queue.JobQueue;
-import net.github.gearman.engine.queue.factories.JobQueueFactory;
+import net.github.gearman.engine.queue.factories.cronjob.CronJobQueueFactory;
+import net.github.gearman.engine.queue.factories.job.JobQueueFactory;
 import net.github.gearman.server.config.ServerConfiguration;
 
 public class ServerListener {
@@ -38,6 +39,7 @@ public class ServerListener {
         LOG.info("Loading existing jobs...");
         // Load up jobs
         JobQueueFactory jobQueueFactory = serverConfiguration.getJobQueueFactory();
+        CronJobQueueFactory cronJobQueueFactory = serverConfiguration.getCronJobQueueFactory();
         JobManager jobManager = serverConfiguration.getJobManager();
 
         if (jobQueueFactory != null) {
@@ -54,6 +56,9 @@ public class ServerListener {
                 }
             }
             LOG.info("Imported " + imported + " persisted jobs.");
+        }
+        if (cronJobQueueFactory != null) {
+            cronJobQueueFactory.triggerCronJob(jobManager);
         }
 
         final NetworkManager networkManager = new NetworkManager(serverConfiguration.getJobManager());

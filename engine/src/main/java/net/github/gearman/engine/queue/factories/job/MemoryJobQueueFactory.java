@@ -1,15 +1,16 @@
-package net.github.gearman.engine.queue.factories;
+package net.github.gearman.engine.queue.factories.job;
+
+import java.util.Collection;
+import java.util.LinkedList;
 
 import com.codahale.metrics.MetricRegistry;
 
+import net.github.gearman.engine.core.JobManager;
 import net.github.gearman.engine.core.QueuedJob;
 import net.github.gearman.engine.exceptions.JobQueueFactoryException;
 import net.github.gearman.engine.queue.JobQueue;
 import net.github.gearman.engine.queue.PersistedJobQueue;
 import net.github.gearman.engine.queue.persistence.job.MemoryPersistenceEngine;
-
-import java.util.Collection;
-import java.util.LinkedList;
 
 public class MemoryJobQueueFactory implements JobQueueFactory {
 
@@ -27,4 +28,5 @@ public class MemoryJobQueueFactory implements JobQueueFactory {
     public Collection<QueuedJob> loadPersistedJobs() {
         return new LinkedList<>();
     }
+
 }

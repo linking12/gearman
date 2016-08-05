@@ -2,7 +2,7 @@ port: 4730
 enableSSL: false
 debugging: true
 hostName: localhost
-persistenceEngine:
+jobPersistenceEngine:
   engine: mysql
   dbSQL:
     host: localhost
@@ -10,6 +10,15 @@ persistenceEngine:
     dbName: gearman
     user: root
     password: 899899AbC
-    table: gearman_00
+    table: gearman_jobs_00
+cronJobpersistenceEngine:
+  engine: mysql
+  dbSQL:
+    host: localhost
+    port: 3306
+    dbName: gearman
+    user: root
+    password: 899899AbC
+    table: gearman_Cronjobs_00
 exceptionStore:
   engine: memory

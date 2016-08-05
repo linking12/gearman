@@ -14,6 +14,8 @@ import net.github.gearman.engine.exceptions.InitException;
 
 public class CronJob extends Job {
 
+    private JobManager        jobManage;
+
     private final String      cronExpression;
 
     /** 定时Job详情 */
@@ -22,17 +24,19 @@ public class CronJob extends Job {
     /** 定时触发器 */
     private final CronTrigger cronTrigger;
 
-    private final JobManager  jobManage;
-
-    public CronJob(String cronExpression, JobManager jobManage){
+    public CronJob(String cronExpression, Job job){
         this.jobDetail = JobBuilder.newJob(TimerExecutor.class).withIdentity(this.getUniqueID()).build();
         this.cronTrigger = TriggerBuilder.newTrigger().withIdentity(this.getUniqueID()).withSchedule(CronScheduleBuilder.cronSchedule(cronExpression)).build();
-        this.jobManage = jobManage;
         this.cronExpression = cronExpression;
+        this.cloneOtherJob(job);
     }
 
     public JobManager getJobManage() {
         return jobManage;
+    }
+
+    public void setJobManage(JobManager jobManage) {
+        this.jobManage = jobManage;
     }
 
     public String getCronExpression() {
@@ -40,6 +44,9 @@ public class CronJob extends Job {
     }
 
     public void init() throws InitException {
+        if (jobManage == null) {
+            throw new InitException("[InternalJob]: init timer job error, JobManager is null,job:" + this.toString());
+        }
         try {
             Scheduler scheduler = SchedulerFactoryHolder.getSchedulerFactory().getScheduler();
             scheduler.scheduleJob(jobDetail, cronTrigger);
