@@ -5,7 +5,8 @@ import com.codahale.metrics.MetricRegistry;
 import net.github.gearman.common.interfaces.JobHandleFactory;
 import net.github.gearman.engine.core.JobManager;
 import net.github.gearman.engine.core.UniqueIdFactory;
-import net.github.gearman.engine.queue.factories.JobQueueFactory;
+import net.github.gearman.engine.queue.factories.cronjob.CronJobQueueFactory;
+import net.github.gearman.engine.queue.factories.job.JobQueueFactory;
 import net.github.gearman.server.util.JobQueueMonitor;
 
 public interface ServerConfiguration {
@@ -21,6 +22,8 @@ public interface ServerConfiguration {
     String getHostName();
 
     JobQueueFactory getJobQueueFactory();
+
+    CronJobQueueFactory getCronJobQueueFactory();
 
     JobManager getJobManager();
 

@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import net.github.gearman.common.Job;
 import net.github.gearman.engine.core.QueuedJob;
 
-public class MemoryPersistenceEngine implements PersistenceEngine {
+public class MemoryPersistenceEngine implements JobPersistenceEngine {
 
     private final ConcurrentHashMap<String, ConcurrentHashMap<String, Job>> jobHash;
     private final Logger                                                    LOG = LoggerFactory.getLogger(MemoryPersistenceEngine.class);

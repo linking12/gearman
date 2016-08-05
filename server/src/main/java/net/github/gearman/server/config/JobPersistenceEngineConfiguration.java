@@ -5,16 +5,16 @@ import com.codahale.metrics.health.HealthCheck;
 
 import net.github.gearman.engine.exceptions.JobQueueFactoryException;
 import net.github.gearman.engine.healthchecks.RedisHealthCheck;
-import net.github.gearman.engine.queue.factories.JobQueueFactory;
-import net.github.gearman.engine.queue.factories.MemoryJobQueueFactory;
-import net.github.gearman.engine.queue.factories.MysqlPersistedJobQueueFactory;
-import net.github.gearman.engine.queue.factories.PostgreSQLPersistedJobQueueFactory;
-import net.github.gearman.engine.queue.factories.RedisPersistedJobQueueFactory;
+import net.github.gearman.engine.queue.factories.job.JobQueueFactory;
+import net.github.gearman.engine.queue.factories.job.MemoryJobQueueFactory;
+import net.github.gearman.engine.queue.factories.job.MysqlPersistedJobQueueFactory;
+import net.github.gearman.engine.queue.factories.job.PostgreSQLPersistedJobQueueFactory;
+import net.github.gearman.engine.queue.factories.job.RedisPersistedJobQueueFactory;
 import net.github.gearman.server.config.persistence.DataBaseConfiguration;
 import net.github.gearman.server.config.persistence.RedisConfiguration;
 import redis.clients.jedis.Jedis;
 
-public class PersistenceEngineConfiguration {
+public class JobPersistenceEngineConfiguration {
 
     private static final String   ENGINE_MEMORY   = "memory";
     private static final String   ENGINE_REDIS    = "redis";

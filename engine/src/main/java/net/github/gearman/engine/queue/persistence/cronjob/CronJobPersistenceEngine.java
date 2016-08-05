@@ -1,5 +1,7 @@
 package net.github.gearman.engine.queue.persistence.cronjob;
 
+import java.util.Collection;
+
 import net.github.gearman.engine.core.cronjob.CronJob;
 
 public interface CronJobPersistenceEngine {
@@ -13,6 +15,7 @@ public interface CronJobPersistenceEngine {
     public void deleteAll();
 
     public CronJob findJob(String functionName, String uniqueID);
-    
+
+    public Collection<CronJob> readAll();
 
 }

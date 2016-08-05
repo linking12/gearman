@@ -21,7 +21,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-public class RedisPersistenceEngine implements PersistenceEngine {
+public class RedisPersistenceEngine implements JobPersistenceEngine {
 
     private final ObjectMapper mapper;
     private final JedisPool    jedisPool;

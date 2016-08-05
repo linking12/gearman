@@ -7,6 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
+import java.util.LinkedList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,21 +20,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jolbox.bonecp.BoneCP;
 import com.jolbox.bonecp.BoneCPConfig;
 
+import net.github.gearman.common.Job;
 import net.github.gearman.engine.core.cronjob.CronJob;
 
 public class MysqlCronJobPersistenceEngine implements CronJobPersistenceEngine {
 
-    private static Logger LOG = LoggerFactory.getLogger(CronJobPersistenceEngine.class);
-    private final String  url;
-    private final String  tableName;
-    private final BoneCP  connectionPool;
+    private static Logger    LOG           = LoggerFactory.getLogger(CronJobPersistenceEngine.class);
+    private static final int JOBS_PER_PAGE = 5000;
+    private final String     url;
+    private final String     tableName;
+    private final BoneCP     connectionPool;
 
-    private final String  updateJobQuery;
-    private final String  insertJobQuery;
-    private final String  deleteJobQuery;
-    private final String  findJobQuery;
-    private final Timer   writeTimer, readTimer;
-    private final Counter deleteCounter, writeCounter, pendingCounter;
+    private final String     updateJobQuery;
+    private final String     insertJobQuery;
+    private final String     deleteJobQuery;
+    private final String     findJobQuery;
+    private final String     readAllJobsQuery;
+    private final String     countQuery;
+    private final Timer      writeTimer, readTimer;
+    private final Counter    deleteCounter, writeCounter, pendingCounter;
 
     public MysqlCronJobPersistenceEngine(final String hostname, final int port, final String database,
                                          final String user, final String password, final String tableName,
@@ -50,6 +56,9 @@ public class MysqlCronJobPersistenceEngine implements CronJobPersistenceEngine {
                                             tableName);
         this.deleteJobQuery = String.format("DELETE FROM %s WHERE function_name = ? AND unique_id = ?", tableName);
         this.findJobQuery = String.format("SELECT * FROM %s WHERE function_name = ? AND unique_id = ?", tableName);
+        this.readAllJobsQuery = String.format("SELECT function_name, priority, unique_id, cronExpression FROM %s LIMIT ? OFFSET ?",
+                                              tableName);
+        this.countQuery = String.format("SELECT COUNT(*) AS jobCount FROM %s", tableName);
         final BoneCPConfig config = new BoneCPConfig();
         config.setJdbcUrl(this.url);
         config.setUsername(user);
@@ -251,8 +260,10 @@ public class MysqlCronJobPersistenceEngine implements CronJobPersistenceEngine {
                 rs = st.executeQuery();
 
                 if (rs.next()) {
-                    String jobJSON = rs.getString("json_data");
-                    job = mapper.readValue(jobJSON, CronJob.class);
+                    final String cronExpression = rs.getString("cronExpression");
+                    final String jobJSON = rs.getString("json_data");
+                    Job realJob = mapper.readValue(jobJSON, Job.class);
+                    job = new CronJob(cronExpression, realJob);
                 } else {
                     LOG.warn("No job for unique ID: " + uniqueID
                              + " -- this could be an internal consistency problem...");
@@ -277,5 +288,72 @@ public class MysqlCronJobPersistenceEngine implements CronJobPersistenceEngine {
         }
 
         return job;
+    }
+
+    @Override
+    public Collection<CronJob> readAll() {
+        LinkedList<CronJob> jobs = new LinkedList<>();
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        Connection conn = null;
+        // Which page of results are we on?
+        int pageNum = 0;
+
+        try {
+            conn = connectionPool.getConnection();
+            if (conn != null) {
+
+                LOG.debug("Reading all job data from PostgreSQL");
+                st = conn.prepareStatement(countQuery);
+                rs = st.executeQuery();
+
+                if (rs.next()) {
+                    int totalJobs = rs.getInt("jobCount");
+                    int fetchedJobs = 0;
+                    LOG.debug("Reading " + totalJobs + " jobs from PostgreSQL");
+                    do {
+
+                        st.setFetchSize(JOBS_PER_PAGE);
+                        st.setMaxRows(JOBS_PER_PAGE);
+                        st = conn.prepareStatement(readAllJobsQuery);
+                        st.setInt(1, JOBS_PER_PAGE);
+                        st.setInt(2, (pageNum * JOBS_PER_PAGE));
+                        rs = st.executeQuery();
+                        while (rs.next()) {
+                            try {
+                                ObjectMapper mapper = new ObjectMapper();
+                                final String cronExpression = rs.getString("cronExpression");
+                                final String jobJSON = rs.getString("json_data");
+                                Job job = mapper.readValue(jobJSON, Job.class);
+                                jobs.add(new CronJob(cronExpression, job));
+                            } catch (Exception e) {
+                                LOG.error("Unable to load job '" + rs.getString("unique_id") + "'");
+                            }
+                            fetchedJobs += 1;
+                        }
+
+                        pageNum += 1;
+                        LOG.debug("Loaded " + fetchedJobs + "...");
+                    } while (fetchedJobs != totalJobs);
+                }
+
+            }
+
+        } catch (SQLException se) {
+            LOG.debug(se.toString());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+
+                if (st != null) st.close();
+
+                if (conn != null) conn.close();
+
+            } catch (SQLException innerEx) {
+                LOG.debug("Error cleaning up: " + innerEx);
+            }
+        }
+
+        return jobs;
     }
 }

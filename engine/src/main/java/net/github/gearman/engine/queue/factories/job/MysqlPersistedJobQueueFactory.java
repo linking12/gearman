@@ -1,4 +1,4 @@
-package net.github.gearman.engine.queue.factories;
+package net.github.gearman.engine.queue.factories.job;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -18,15 +18,16 @@ public class MysqlPersistedJobQueueFactory implements JobQueueFactory {
 
     private static Logger                LOG = LoggerFactory.getLogger(PostgreSQLPersistedJobQueueFactory.class);
 
-    private final MysqlPersistenceEngine mysqlQueue;;
+    private final MysqlPersistenceEngine mysqlQueue;
+
     private final MetricRegistry         metricRegistry;
 
     public MysqlPersistedJobQueueFactory(String hostname, int port, String database, String user, String password,
-                                         String tableName,
+                                         String tablename,
                                          MetricRegistry metricRegistry) throws JobQueueFactoryException{
         try {
             this.metricRegistry = metricRegistry;
-            this.mysqlQueue = new MysqlPersistenceEngine(hostname, port, database, user, password, tableName,
+            this.mysqlQueue = new MysqlPersistenceEngine(hostname, port, database, user, password, tablename,
                                                          metricRegistry);
         } catch (SQLException e) {
             LOG.error("Unable to create mysql persistence engine: ", e);

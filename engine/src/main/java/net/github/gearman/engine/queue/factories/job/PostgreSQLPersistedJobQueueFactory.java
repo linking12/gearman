@@ -1,4 +1,10 @@
-package net.github.gearman.engine.queue.factories;
+package net.github.gearman.engine.queue.factories.job;
+
+import java.sql.SQLException;
+import java.util.Collection;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.MetricRegistry;
 
@@ -7,12 +13,6 @@ import net.github.gearman.engine.exceptions.JobQueueFactoryException;
 import net.github.gearman.engine.queue.JobQueue;
 import net.github.gearman.engine.queue.PersistedJobQueue;
 import net.github.gearman.engine.queue.persistence.job.PostgresPersistenceEngine;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.SQLException;
-import java.util.Collection;
 
 public class PostgreSQLPersistedJobQueueFactory implements JobQueueFactory {
 
@@ -43,4 +43,5 @@ public class PostgreSQLPersistedJobQueueFactory implements JobQueueFactory {
     public Collection<QueuedJob> loadPersistedJobs() {
         return this.postgresQueue.readAll();
     }
+
 }

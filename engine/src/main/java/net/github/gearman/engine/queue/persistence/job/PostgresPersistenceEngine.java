@@ -24,7 +24,7 @@ import net.github.gearman.common.Job;
 import net.github.gearman.constants.JobPriority;
 import net.github.gearman.engine.core.QueuedJob;
 
-public class PostgresPersistenceEngine implements PersistenceEngine {
+public class PostgresPersistenceEngine implements JobPersistenceEngine {
 
     private static Logger    LOG           = LoggerFactory.getLogger(PostgresPersistenceEngine.class);
     private static final int JOBS_PER_PAGE = 5000;
