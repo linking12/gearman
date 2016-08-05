@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.quartz.CronExpression;
+
 import net.github.gearman.constants.JobPriority;
 import net.github.gearman.constants.PacketType;
 
@@ -48,8 +50,12 @@ public class SubmitJob extends RequestPacket {
         this(function, uniqueID, data, true, JobPriority.NORMAL, when);
     }
 
+    public SubmitJob(String function, String uniqueID, byte[] data, String cronExpression){
+        this(function, uniqueID, data, true, JobPriority.NORMAL, cronExpression);
+    }
+
     public SubmitJob(String function, String unique_id, byte[] data, boolean background, JobPriority priority,
-                     Date when){
+                     Object when){
         this.taskName = new AtomicReference<>(function);
         this.uniqueId = new AtomicReference<>(unique_id);
         this.epochString = new AtomicReference<>();
@@ -69,12 +75,20 @@ public class SubmitJob extends RequestPacket {
             default:
                 break;
         }
-
-        if (when != null) {
-            this.epochString.set(String.valueOf(when.getTime()));
-            this.size = function.length() + 1 + unique_id.length() + 1 + epochString.get().length() + 1 + data.length;
-        } else {
+        if (when == null) {
             this.size = function.length() + 1 + unique_id.length() + 1 + data.length;
+        } else {
+            if (when instanceof Date) {
+                Date tempWhen = (Date) when;
+                this.epochString.set(String.valueOf(tempWhen.getTime()));
+            } else if (when instanceof String) {
+                String tempWhen = ((String) when).trim();
+                if (!CronExpression.isValidExpression(tempWhen)) {
+                    throw new IllegalArgumentException("error cronExpression " + tempWhen);
+                }
+                this.epochString.set(tempWhen);
+            }
+            this.size = function.length() + 1 + unique_id.length() + 1 + epochString.get().length() + 1 + data.length;
         }
     }
 
@@ -117,8 +131,8 @@ public class SubmitJob extends RequestPacket {
         return data;
     }
 
-    public long getEpoch() {
-        return Long.parseLong(epochString.get());
+    public String getEpoch() {
+        return epochString.get();
     }
 
     @Override

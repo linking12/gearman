@@ -32,9 +32,7 @@ public class Job {
     }
 
     public Job(final String functionName, final String uniqueID, final byte[] data, final JobPriority priority,
-               boolean isBackground)
-
-    {
+               boolean isBackground){
         this(functionName, uniqueID, data, priority, isBackground, -1);
     }
 

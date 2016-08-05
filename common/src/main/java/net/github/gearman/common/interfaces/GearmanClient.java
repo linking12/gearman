@@ -12,6 +12,8 @@ public interface GearmanClient {
 
     String submitFutureJob(String callback, byte[] data, Date whenToRun) throws JobSubmissionException;
 
+    String submitFutureJob(String callback, byte[] data, String cronExpression) throws JobSubmissionException;
+
     String submitJobInBackground(String callback, byte[] data) throws JobSubmissionException;
 
     String submitJobInBackground(String callback, byte[] data, JobPriority priority) throws JobSubmissionException;

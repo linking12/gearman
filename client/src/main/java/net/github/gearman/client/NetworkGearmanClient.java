@@ -138,6 +138,12 @@ public class NetworkGearmanClient extends AbstractGearmanClient {
     }
 
     @Override
+    public String submitFutureJob(String callback, byte[] data, String cronExpression) throws JobSubmissionException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
     public String submitFutureJob(String callback, byte[] data, Date whenToRun) throws NoServersAvailableException {
         String uniqueID = UUID.randomUUID().toString();
         try {

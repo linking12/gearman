@@ -126,14 +126,19 @@ public class NetworkManager {
         byte[] data = packet.getData();
         JobPriority priority = packet.getPriority();
         boolean isBackground = packet.isBackground();
-        long timeToRun = -1;
+        long timeToRunDate = -1;
+        String timeToRunCronExpression = null;
 
         if (packet.getType() == PacketType.SUBMIT_JOB_EPOCH) {
-            timeToRun = packet.getEpoch();
+            try {
+                timeToRunDate = Long.parseLong(packet.getEpoch());
+            } catch (NumberFormatException e) {
+                timeToRunCronExpression = packet.getEpoch();
+            }
         }
 
         // This could return an existing job, or the newly generated one
-        final Job inputJob = new Job(funcName, uniqueID, data, priority, isBackground, timeToRun);
+        final Job inputJob = new Job(funcName, uniqueID, data, priority, isBackground, timeToRunDate);
         try {
             Job storedJob = jobManager.storeJobForClient(inputJob, client);
 
