@@ -17,11 +17,6 @@ import net.github.gearman.engine.queue.factories.JobQueueFactory;
 import net.github.gearman.engine.storage.ExceptionStorageEngine;
 import net.github.gearman.engine.util.LocalJobHandleFactory;
 import net.github.gearman.engine.util.LocalUniqueIdFactory;
-import net.github.gearman.server.cluster.config.ClusterConfiguration;
-import net.github.gearman.server.cluster.core.ClusterJobManager;
-import net.github.gearman.server.cluster.queue.factories.HazelcastJobQueueFactory;
-import net.github.gearman.server.cluster.util.HazelcastJobHandleFactory;
-import net.github.gearman.server.cluster.util.HazelcastUniqueIdFactory;
 import net.github.gearman.server.util.JobQueueMonitor;
 import net.github.gearman.server.util.SnapshottingJobQueueMonitor;
 
@@ -37,7 +32,6 @@ public class GearmanServerConfiguration implements ServerConfiguration {
     private JobQueueMonitor                jobQueueMonitor;
     private ExceptionStorageEngine         exceptionStorageEngine;
     private PersistenceEngineConfiguration persistenceEngine;
-    private ClusterConfiguration           clusterConfiguration;
     private ExceptionStoreConfiguration    exceptionStoreConfiguration;
     private JobHandleFactory               jobHandleFactory;
     private UniqueIdFactory                uniqueIdFactory;
@@ -203,22 +197,6 @@ public class GearmanServerConfiguration implements ServerConfiguration {
         }
 
         return exceptionStorageEngine;
-    }
-
-    public ClusterConfiguration getCluster() {
-        return clusterConfiguration;
-    }
-
-    // Setting the cluster configuration forces some settings...
-    public void setCluster(ClusterConfiguration clusterConfiguration) {
-        this.clusterConfiguration = clusterConfiguration;
-        this.jobQueueFactory = new HazelcastJobQueueFactory(clusterConfiguration.getHazelcastInstance());
-        this.jobHandleFactory = new HazelcastJobHandleFactory(clusterConfiguration.getHazelcastInstance(),
-                                                              getHostName());
-        this.uniqueIdFactory = new HazelcastUniqueIdFactory(clusterConfiguration.getHazelcastInstance());
-        this.jobManager = new ClusterJobManager(jobQueueFactory, jobHandleFactory, uniqueIdFactory,
-                                                clusterConfiguration.getHazelcastInstance(), queueMetrics);
-        this.jobQueueMonitor = new SnapshottingJobQueueMonitor(queueMetrics);
     }
 
     public HealthCheckRegistry getHealthCheckRegistry() {
