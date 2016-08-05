@@ -1,4 +1,4 @@
-package net.github.gearman.engine.core.jobextend;
+package net.github.gearman.engine.core.cronjob;
 
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
@@ -12,7 +12,9 @@ import net.github.gearman.common.Job;
 import net.github.gearman.engine.core.JobManager;
 import net.github.gearman.engine.exceptions.InitException;
 
-public class CronExpressionJob extends Job {
+public class CronJob extends Job {
+
+    private final String      cronExpression;
 
     /** 定时Job详情 */
     private final JobDetail   jobDetail;
@@ -22,14 +24,19 @@ public class CronExpressionJob extends Job {
 
     private final JobManager  jobManage;
 
-    public CronExpressionJob(String cronExpression, JobManager jobManage){
+    public CronJob(String cronExpression, JobManager jobManage){
         this.jobDetail = JobBuilder.newJob(TimerExecutor.class).withIdentity(this.getUniqueID()).build();
         this.cronTrigger = TriggerBuilder.newTrigger().withIdentity(this.getUniqueID()).withSchedule(CronScheduleBuilder.cronSchedule(cronExpression)).build();
         this.jobManage = jobManage;
+        this.cronExpression = cronExpression;
     }
 
     public JobManager getJobManage() {
         return jobManage;
+    }
+
+    public String getCronExpression() {
+        return cronExpression;
     }
 
     public void init() throws InitException {

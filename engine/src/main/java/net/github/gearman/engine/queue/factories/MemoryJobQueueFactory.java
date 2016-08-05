@@ -6,7 +6,7 @@ import net.github.gearman.engine.core.QueuedJob;
 import net.github.gearman.engine.exceptions.JobQueueFactoryException;
 import net.github.gearman.engine.queue.JobQueue;
 import net.github.gearman.engine.queue.PersistedJobQueue;
-import net.github.gearman.engine.queue.persistence.MemoryPersistenceEngine;
+import net.github.gearman.engine.queue.persistence.job.MemoryPersistenceEngine;
 
 import java.util.Collection;
 import java.util.LinkedList;

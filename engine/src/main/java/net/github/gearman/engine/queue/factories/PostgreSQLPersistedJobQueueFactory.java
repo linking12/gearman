@@ -6,7 +6,7 @@ import net.github.gearman.engine.core.QueuedJob;
 import net.github.gearman.engine.exceptions.JobQueueFactoryException;
 import net.github.gearman.engine.queue.JobQueue;
 import net.github.gearman.engine.queue.PersistedJobQueue;
-import net.github.gearman.engine.queue.persistence.PostgresPersistenceEngine;
+import net.github.gearman.engine.queue.persistence.job.PostgresPersistenceEngine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

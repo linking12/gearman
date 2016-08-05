@@ -1,4 +1,4 @@
-package net.github.gearman.engine.queue.persistence;
+package net.github.gearman.engine.queue.persistence.job;
 
 import static com.codahale.metrics.MetricRegistry.name;
 

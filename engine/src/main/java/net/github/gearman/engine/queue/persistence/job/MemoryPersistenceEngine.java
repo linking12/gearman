@@ -1,4 +1,4 @@
-package net.github.gearman.engine.queue.persistence;
+package net.github.gearman.engine.queue.persistence.job;
 
 import java.util.ArrayList;
 import java.util.Collection;

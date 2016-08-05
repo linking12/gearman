@@ -1,4 +1,4 @@
-package net.github.gearman.engine.queue.persistence;
+package net.github.gearman.engine.queue.persistence.job;
 
 import java.util.Collection;
 
@@ -22,5 +22,4 @@ public interface PersistenceEngine {
     public Collection<QueuedJob> readAll();
 
     public Collection<QueuedJob> getAllForFunction(String functionName);
-    // public Job findJobByHandle(String jobHandle);
 }

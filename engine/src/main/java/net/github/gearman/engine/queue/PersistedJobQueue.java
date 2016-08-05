@@ -27,7 +27,7 @@ import net.github.gearman.constants.JobPriority;
 import net.github.gearman.engine.core.QueuedJob;
 import net.github.gearman.engine.exceptions.PersistenceException;
 import net.github.gearman.engine.exceptions.QueueFullException;
-import net.github.gearman.engine.queue.persistence.PersistenceEngine;
+import net.github.gearman.engine.queue.persistence.job.PersistenceEngine;
 
 public class PersistedJobQueue implements JobQueue {
 

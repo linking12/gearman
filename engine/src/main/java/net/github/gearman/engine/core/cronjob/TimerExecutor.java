@@ -1,4 +1,4 @@
-package net.github.gearman.engine.core.jobextend;
+package net.github.gearman.engine.core.cronjob;
 
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -20,9 +20,9 @@ public class TimerExecutor implements org.quartz.Job {
      */
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        CronExpressionJob job = null;
+        CronJob job = null;
         try {
-            job = (CronExpressionJob) context.getScheduler().getContext().get(context.getJobDetail().getKey().getName());
+            job = (CronJob) context.getScheduler().getContext().get(context.getJobDetail().getKey().getName());
             JobManager jobManager = job.getJobManage();
             JobQueue jobQueue = jobManager.getOrCreateJobQueue(job.getFunctionName());
             jobQueue.enqueue(job);

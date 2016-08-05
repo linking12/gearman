@@ -1,4 +1,4 @@
-package net.github.gearman.engine.queue.persistence;
+package net.github.gearman.engine.queue.persistence.job;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -24,7 +24,7 @@ import net.github.gearman.common.Job;
 import net.github.gearman.constants.JobPriority;
 import net.github.gearman.engine.core.QueuedJob;
 
-public class MysqlPersistenceEngine implements PersistenceEngine {
+public class PostgresPersistenceEngine implements PersistenceEngine {
 
     private static Logger    LOG           = LoggerFactory.getLogger(PostgresPersistenceEngine.class);
     private static final int JOBS_PER_PAGE = 5000;
@@ -43,16 +43,16 @@ public class MysqlPersistenceEngine implements PersistenceEngine {
     private final Timer      writeTimer, readTimer;
     private final Counter    deleteCounter, writeCounter, pendingCounter;
 
-    public MysqlPersistenceEngine(final String hostname, final int port, final String database, final String user,
-                                  final String password, final String tableName,
-                                  final MetricRegistry metricRegistry) throws SQLException{
-        this.pendingCounter = metricRegistry.counter("mysql.pending");
-        this.writeTimer = metricRegistry.timer("mysql.write");
-        this.readTimer = metricRegistry.timer("mysql.read");
-        this.writeCounter = metricRegistry.counter("mysql.write.count");
-        this.deleteCounter = metricRegistry.counter("mysql.delete.count");
+    public PostgresPersistenceEngine(final String hostname, final int port, final String database, final String user,
+                                     final String password, final String tableName,
+                                     final MetricRegistry metricRegistry) throws SQLException{
+        this.pendingCounter = metricRegistry.counter("postgresql.pending");
+        this.writeTimer = metricRegistry.timer("postgresql.write");
+        this.readTimer = metricRegistry.timer("postgresql.read");
+        this.writeCounter = metricRegistry.counter("postgresql.write");
+        this.deleteCounter = metricRegistry.counter("postgresql.delete");
 
-        this.url = "jdbc:mysql://" + hostname + ":" + port + "/" + database;
+        this.url = "jdbc:postgresql://" + hostname + ":" + port + "/" + database;
         this.tableName = tableName;
 
         this.updateJobQuery = String.format("UPDATE %s SET job_handle = ?, priority = ?, time_to_run = ?, json_data = ? WHERE unique_id = ? AND function_name = ?",
@@ -440,7 +440,7 @@ public class MysqlPersistenceEngine implements PersistenceEngine {
                 DatabaseMetaData dbm = conn.getMetaData();
                 ResultSet tables = dbm.getTables(null, null, tableName, null);
                 if (!tables.next()) {
-                    final String createQuery = String.format("CREATE TABLE %s(id bigint(20) NOT NULL AUTO_INCREMENT, unique_id varchar(255), priority varchar(50), function_name varchar(255), time_to_run bigint(10), job_handle varchar(244), json_data text,KEY(id))",
+                    final String createQuery = String.format("CREATE TABLE %s(id bigserial, unique_id varchar(255), priority varchar(50), function_name varchar(255), time_to_run bigint, job_handle text, json_data text)",
                                                              tableName);
                     final String indexUidQuery = String.format("CREATE INDEX %s_unique_id ON %s(unique_id)", tableName,
                                                                tableName);
@@ -482,5 +482,4 @@ public class MysqlPersistenceEngine implements PersistenceEngine {
 
         return success;
     }
-
 }
