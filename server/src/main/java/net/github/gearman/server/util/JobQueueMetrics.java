@@ -6,10 +6,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.joda.time.DateTime;
 
-import net.johnewart.shuzai.DifferentialTimeSeries;
-import net.johnewart.shuzai.Frequency;
-import net.johnewart.shuzai.SampleMethod;
-import net.johnewart.shuzai.TimeSeries;
+import net.github.gearman.server.common.DifferentialTimeSeries;
+import net.github.gearman.server.common.Frequency;
+import net.github.gearman.server.common.SampleMethod;
+import net.github.gearman.server.common.TimeSeries;
 
 public class JobQueueMetrics {
 

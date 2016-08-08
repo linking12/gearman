@@ -15,9 +15,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import net.github.gearman.engine.metrics.QueueMetrics;
-import net.johnewart.shuzai.Frequency;
-import net.johnewart.shuzai.SampleMethod;
-import net.johnewart.shuzai.TimeSeries;
+import net.github.gearman.server.common.Frequency;
+import net.github.gearman.server.common.SampleMethod;
+import net.github.gearman.server.common.TimeSeries;
 
 public class SnapshottingJobQueueMonitor implements JobQueueMonitor {
 
