@@ -27,7 +27,9 @@ public class TimerExecutor implements org.quartz.Job {
             JobManager jobManager = job.getJobManage();
             JobQueue jobQueue = jobManager.getOrCreateJobQueue(job.getFunctionName());
             String jobId = substringBefore(job.getUniqueID(), "_").concat("_") + job.getTimes().getAndIncrement();
+            String jobHandler = substringBefore(job.getJobHandle(), "_").concat("_") + job.getTimes().getAndIncrement();
             job.setUniqueID(jobId);
+            job.setJobHandle(jobHandler);
             Job enqueueJob = new Job(job);
             jobQueue.enqueue(enqueueJob);
             LOG.info("[TimerExecutor]: jobId:" + job.getUniqueID() + ", fireTime:"
