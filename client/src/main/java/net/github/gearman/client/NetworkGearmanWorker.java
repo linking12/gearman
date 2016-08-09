@@ -1,6 +1,8 @@
 package net.github.gearman.client;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +26,7 @@ import net.github.gearman.common.packets.response.JobAssign;
 import net.github.gearman.common.packets.response.JobAssignUniq;
 import net.github.gearman.common.packets.response.WorkCompleteResponse;
 import net.github.gearman.common.packets.response.WorkDataResponse;
+import net.github.gearman.common.packets.response.WorkExceptionResponse;
 import net.github.gearman.common.packets.response.WorkStatus;
 import net.github.gearman.common.packets.response.WorkWarningResponse;
 import net.github.gearman.constants.PacketType;
@@ -69,7 +72,6 @@ public class NetworkGearmanWorker implements GearmanWorker, Runnable {
                 try {
                     c.sendPacket(new GrabJob());
                     Packet p = c.getNextPacket();
-                    byte[] result;
 
                     switch (p.getType()) {
                         case JOB_ASSIGN:
@@ -97,8 +99,17 @@ public class NetworkGearmanWorker implements GearmanWorker, Runnable {
                     if (nextJob != null) {
                         jobConnectionMap.put(nextJob, c);
                         WorkEvent workEvent = new WorkEvent(nextJob, this);
-                        result = callbacks.get(nextJob.getFunctionName()).process(workEvent);
-                        c.sendPacket(new WorkCompleteResponse(nextJob.getJobHandle(), result));
+                        try {
+                            GearmanFunction function = callbacks.get(nextJob.getFunctionName());
+                            byte[] result = function.process(workEvent);
+                            c.sendPacket(new WorkCompleteResponse(nextJob.getJobHandle(), result));
+                        } catch (Throwable e) {
+                            StringWriter sw = new StringWriter();
+                            PrintWriter pw = new PrintWriter(sw);
+                            e.printStackTrace(pw);
+                            c.sendPacket(new WorkExceptionResponse(nextJob.getJobHandle(),
+                                                                   sw.getBuffer().toString().getBytes()));
+                        }
                     }
 
                 } catch (IOException ioe) {

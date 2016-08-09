@@ -32,10 +32,9 @@ public class GearmanServerConfiguration implements ServerConfiguration {
     private JobQueueFactory                       jobQueueFactory;
     private JobManager                            jobManager;
     private JobQueueMonitor                       jobQueueMonitor;
-    private ExceptionStorageEngine                exceptionStorageEngine;
     private JobPersistenceEngineConfiguration     jobPersistenceEngine;
     private CronJobPersistenceEngineConfiguration cronJobpersistenceEngine;
-    private ExceptionStoreConfiguration           exceptionStoreConfiguration;
+    private ExceptionStoreConfiguration           exceptionStorageEngine;
     private JobHandleFactory                      jobHandleFactory;
     private UniqueIdFactory                       uniqueIdFactory;
     private MetricRegistry                        metricRegistry;
@@ -102,12 +101,12 @@ public class GearmanServerConfiguration implements ServerConfiguration {
         this.jobQueueMonitor = jobQueueMonitor;
     }
 
-    public void setExceptionStore(ExceptionStoreConfiguration exceptionStoreConfiguration) {
-        this.exceptionStoreConfiguration = exceptionStoreConfiguration;
+    public ExceptionStoreConfiguration getExceptionStorageEngine() {
+        return exceptionStorageEngine;
     }
 
-    public ExceptionStoreConfiguration getExceptionStore() {
-        return exceptionStoreConfiguration;
+    public void setExceptionStorageEngine(ExceptionStoreConfiguration exceptionStorageEngine) {
+        this.exceptionStorageEngine = exceptionStorageEngine;
     }
 
     @Override
@@ -161,7 +160,7 @@ public class GearmanServerConfiguration implements ServerConfiguration {
     public JobManager getJobManager() {
         if (jobManager == null) {
             jobManager = new JobManager(getJobQueueFactory(), getCronJobQueueFactory(), getJobHandleFactory(),
-                                        getUniqueIdFactory(), getExceptionStorageEngine(), getQueueMetrics());
+                                        getUniqueIdFactory(), getExceptionStorageEngine().getExceptionStorageEngine(), getQueueMetrics());
         }
 
         return jobManager;
@@ -209,14 +208,6 @@ public class GearmanServerConfiguration implements ServerConfiguration {
             }
         }
         return queueMetrics;
-    }
-
-    public ExceptionStorageEngine getExceptionStorageEngine() {
-        if (exceptionStorageEngine == null && getExceptionStore() != null) {
-            this.exceptionStorageEngine = getExceptionStore().getExceptionStorageEngine();
-        }
-
-        return exceptionStorageEngine;
     }
 
     public HealthCheckRegistry getHealthCheckRegistry() {
