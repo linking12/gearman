@@ -1,5 +1,7 @@
 package net.github.gearman.engine.core.cronjob;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
 import org.quartz.JobBuilder;
@@ -14,21 +16,24 @@ import net.github.gearman.engine.exceptions.InitException;
 
 public class CronJob extends Job {
 
-    private JobManager        jobManage;
+    private JobManager          jobManage;
 
-    private final String      cronExpression;
+    private final String        cronExpression;
 
     /** 定时Job详情 */
-    private final JobDetail   jobDetail;
+    private final JobDetail     jobDetail;
 
     /** 定时触发器 */
-    private final CronTrigger cronTrigger;
+    private final CronTrigger   cronTrigger;
+
+    private final AtomicInteger times;
 
     public CronJob(String cronExpression, Job job){
         this.cloneOtherJob(job);
         this.jobDetail = JobBuilder.newJob(TimerExecutor.class).withIdentity(this.getUniqueID()).build();
         this.cronTrigger = TriggerBuilder.newTrigger().withIdentity(this.getUniqueID()).withSchedule(CronScheduleBuilder.cronSchedule(cronExpression)).build();
         this.cronExpression = cronExpression;
+        this.times = new AtomicInteger(0);
     }
 
     public JobManager getJobManage() {
@@ -41,6 +46,10 @@ public class CronJob extends Job {
 
     public String getCronExpression() {
         return cronExpression;
+    }
+
+    public AtomicInteger getTimes() {
+        return times;
     }
 
     public void init() throws InitException {

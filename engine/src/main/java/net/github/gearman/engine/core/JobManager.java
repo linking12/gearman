@@ -212,6 +212,9 @@ public class JobManager {
         if (!cronJob.isBackground()) {
             addClientForUniqueId(cronJob.getUniqueID(), client);
         }
+        if (cronJob.getJobHandle() == null || cronJob.getJobHandle().isEmpty()) {
+            cronJob.setJobHandle(new String(jobHandleFactory.getNextJobHandle()));
+        }
         return cronJobQueueFactory.getCronJobPersistenceEngine().write(cronJob);
     }
 

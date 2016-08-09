@@ -1,12 +1,11 @@
 package net.github.gearman.engine.core.cronjob;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.github.gearman.common.Job;
 import net.github.gearman.engine.core.JobManager;
 import net.github.gearman.engine.queue.JobQueue;
 
@@ -15,9 +14,7 @@ import net.github.gearman.engine.queue.JobQueue;
  */
 public class TimerExecutor implements org.quartz.Job {
 
-    private static Logger LOG    = LoggerFactory.getLogger(TimerExecutor.class);
-
-    private AtomicInteger number = new AtomicInteger(0);
+    private static Logger LOG = LoggerFactory.getLogger(TimerExecutor.class);
 
     /**
      * 执行入口
@@ -29,9 +26,10 @@ public class TimerExecutor implements org.quartz.Job {
             job = (CronJob) context.getScheduler().getContext().get(context.getJobDetail().getKey().getName());
             JobManager jobManager = job.getJobManage();
             JobQueue jobQueue = jobManager.getOrCreateJobQueue(job.getFunctionName());
-            int jobId = number.getAndIncrement();
-            job.setUniqueID(job.getUniqueID() + "-" + jobId);
-            jobQueue.enqueue(job);
+            String jobId = substringBefore(job.getUniqueID(), "_").concat("_") + job.getTimes().getAndIncrement();
+            job.setUniqueID(jobId);
+            Job enqueueJob = new Job(job);
+            jobQueue.enqueue(enqueueJob);
             LOG.info("[TimerExecutor]: jobId:" + job.getUniqueID() + ", fireTime:"
                      + context.getFireTime().toLocaleString() + " reenqueue ");
         } catch (Throwable e) {
@@ -39,6 +37,20 @@ public class TimerExecutor implements org.quartz.Job {
                       + ", fireTime:" + context.getFireTime().toLocaleString(), e);
         }
 
+    }
+
+    private String substringBefore(final String str, final String separator) {
+        if ((str == null || str.length() == 0) || separator == null) {
+            return str;
+        }
+        if (separator.isEmpty()) {
+            return "";
+        }
+        final int pos = str.indexOf(separator);
+        if (pos == -1) {
+            return str;
+        }
+        return str.substring(0, pos);
     }
 
 }

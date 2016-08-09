@@ -37,21 +37,19 @@ public class ClientDemo {
             NetworkGearmanClient client = new NetworkGearmanClient("localhost", 4730);
             client.addHostToList("localhost", 4731);
             client.registerEventListener(eventListener);
+            try {
+                String cron = String.format("*/%s * * * * ?", 10);
+                String result = client.submitFutureJob("reverse", data, cron);
+                System.err.println("Result: " + new String(result));
+            } catch (JobSubmissionException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
 
-            while (true) {
-                try {
-                    String result = client.submitFutureJob("reverse", data, "*/5 * * * * ?");
-                    System.err.println("Result: " + new String(result));
-                } catch (JobSubmissionException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         } catch (IOException ioe) {
             System.err.println("Couldn't connect: " + ioe);

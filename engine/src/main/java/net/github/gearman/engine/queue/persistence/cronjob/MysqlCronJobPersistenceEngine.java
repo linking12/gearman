@@ -56,7 +56,7 @@ public class MysqlCronJobPersistenceEngine implements CronJobPersistenceEngine {
                                             tableName);
         this.deleteJobQuery = String.format("DELETE FROM %s WHERE function_name = ? AND unique_id = ?", tableName);
         this.findJobQuery = String.format("SELECT * FROM %s WHERE function_name = ? AND unique_id = ?", tableName);
-        this.readAllJobsQuery = String.format("SELECT function_name, priority, unique_id, cronExpression FROM %s LIMIT ? OFFSET ?",
+        this.readAllJobsQuery = String.format("SELECT function_name, priority, unique_id, cronExpression, json_data FROM %s LIMIT ? OFFSET ?",
                                               tableName);
         this.countQuery = String.format("SELECT COUNT(*) AS jobCount FROM %s", tableName);
         final BoneCPConfig config = new BoneCPConfig();
@@ -134,7 +134,8 @@ public class MysqlCronJobPersistenceEngine implements CronJobPersistenceEngine {
         try {
             conn = connectionPool.getConnection();
             if (conn != null) {
-                String jobJSON = mapper.writeValueAsString(job);
+                Job tmpJob = new Job(job);
+                String jobJSON = mapper.writeValueAsString(tmpJob);
 
                 // Update an existing job if one exists based on unique id
                 st = conn.prepareStatement(updateJobQuery);
