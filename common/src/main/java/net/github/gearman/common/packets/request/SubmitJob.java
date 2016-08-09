@@ -47,11 +47,11 @@ public class SubmitJob extends RequestPacket {
     }
 
     public SubmitJob(String function, String uniqueID, byte[] data, Date when){
-        this(function, uniqueID, data, true, JobPriority.NORMAL, when);
+        this(function, uniqueID, data, false, JobPriority.NORMAL, when);
     }
 
     public SubmitJob(String function, String uniqueID, byte[] data, String cronExpression){
-        this(function, uniqueID, data, true, JobPriority.NORMAL, cronExpression);
+        this(function, uniqueID, data, false, JobPriority.NORMAL, cronExpression);
     }
 
     public SubmitJob(String function, String unique_id, byte[] data, boolean background, JobPriority priority,
@@ -78,6 +78,7 @@ public class SubmitJob extends RequestPacket {
         if (when == null) {
             this.size = function.length() + 1 + unique_id.length() + 1 + data.length;
         } else {
+            this.type = PacketType.SUBMIT_JOB_EPOCH;
             if (when instanceof Date) {
                 Date tempWhen = (Date) when;
                 this.epochString.set(String.valueOf(tempWhen.getTime()));

@@ -139,7 +139,25 @@ public class NetworkGearmanClient extends AbstractGearmanClient {
 
     @Override
     public String submitFutureJob(String callback, byte[] data, String cronExpression) throws JobSubmissionException {
-        // TODO Auto-generated method stub
+        String uniqueID = UUID.randomUUID().toString();
+        try {
+            ServerResponse response = sendJobPacket(new SubmitJob(callback, uniqueID, data, cronExpression));
+            if (response != null) {
+                LOG.debug("Sent future job request to " + response.getConnection());
+
+                // If we get back a JOB_CREATED packet, we can continue,
+                // otherwise try the next job manager
+                if (response.getPacket().getType() == PacketType.JOB_CREATED) {
+                    String jobHandle = ((JobCreated) response.getPacket()).getJobHandle();
+                    LOG.debug("Created future job %s\n", jobHandle);
+                    return jobHandle;
+                }
+            }
+        } catch (NoServersAvailableException nsae) {
+            LOG.warn("No servers available to submit the job.");
+            throw nsae;
+        }
+
         return null;
     }
 

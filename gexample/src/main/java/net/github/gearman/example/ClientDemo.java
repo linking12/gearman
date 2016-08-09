@@ -5,11 +5,7 @@ import java.io.IOException;
 import net.github.gearman.client.NetworkGearmanClient;
 import net.github.gearman.common.JobStatus;
 import net.github.gearman.common.events.GearmanClientEventListener;
-import net.github.gearman.constants.JobPriority;
-import net.github.gearman.exceptions.NoServersAvailableException;
-import net.github.gearman.exceptions.WorkException;
-import net.github.gearman.exceptions.WorkExceptionException;
-import net.github.gearman.exceptions.WorkFailException;
+import net.github.gearman.exceptions.JobSubmissionException;
 
 public class ClientDemo {
 
@@ -44,13 +40,10 @@ public class ClientDemo {
 
             while (true) {
                 try {
-                    byte[] result = client.submitJob("reverse", data, JobPriority.NORMAL);
+                    String result = client.submitFutureJob("reverse", data, "*/5 * * * * ?");
                     System.err.println("Result: " + new String(result));
-                } catch (WorkException e) {
-                    if (e instanceof WorkFailException) System.err.println("Job " + e.getJobHandle() + " failed.");
-                    else System.err.println("Job " + e.getJobHandle() + " exception: "
-                                            + ((WorkExceptionException) e).getMessage());
-
+                } catch (JobSubmissionException e) {
+                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
 
@@ -62,8 +55,6 @@ public class ClientDemo {
             }
         } catch (IOException ioe) {
             System.err.println("Couldn't connect: " + ioe);
-        } catch (NoServersAvailableException nsae) {
-            System.err.println("Can't connect to any servers.");
         }
     }
 }

@@ -25,10 +25,10 @@ public class CronJob extends Job {
     private final CronTrigger cronTrigger;
 
     public CronJob(String cronExpression, Job job){
+        this.cloneOtherJob(job);
         this.jobDetail = JobBuilder.newJob(TimerExecutor.class).withIdentity(this.getUniqueID()).build();
         this.cronTrigger = TriggerBuilder.newTrigger().withIdentity(this.getUniqueID()).withSchedule(CronScheduleBuilder.cronSchedule(cronExpression)).build();
         this.cronExpression = cronExpression;
-        this.cloneOtherJob(job);
     }
 
     public JobManager getJobManage() {

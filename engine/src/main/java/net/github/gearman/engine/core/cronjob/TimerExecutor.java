@@ -1,5 +1,7 @@
 package net.github.gearman.engine.core.cronjob;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
@@ -13,7 +15,9 @@ import net.github.gearman.engine.queue.JobQueue;
  */
 public class TimerExecutor implements org.quartz.Job {
 
-    private static Logger LOG = LoggerFactory.getLogger(TimerExecutor.class);
+    private static Logger LOG    = LoggerFactory.getLogger(TimerExecutor.class);
+
+    private AtomicInteger number = new AtomicInteger(0);
 
     /**
      * 执行入口
@@ -25,6 +29,8 @@ public class TimerExecutor implements org.quartz.Job {
             job = (CronJob) context.getScheduler().getContext().get(context.getJobDetail().getKey().getName());
             JobManager jobManager = job.getJobManage();
             JobQueue jobQueue = jobManager.getOrCreateJobQueue(job.getFunctionName());
+            int jobId = number.getAndIncrement();
+            job.setUniqueID(job.getUniqueID() + "-" + jobId);
             jobQueue.enqueue(job);
             LOG.info("[TimerExecutor]: jobId:" + job.getUniqueID() + ", fireTime:"
                      + context.getFireTime().toLocaleString() + " reenqueue ");
