@@ -65,15 +65,13 @@ public class ServerListener {
 
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
-            bootstrap.group(bossGroup,
-                            workerGroup).channel(NioServerSocketChannel.class).childHandler(new GearmanServerInitializer(networkManager,
-                                                                                                                         serverConfiguration.isSSLEnabled())).option(ChannelOption.SO_KEEPALIVE,
-                                                                                                                                                                     true).option(ChannelOption.SO_REUSEADDR,
-                                                                                                                                                                                  true).option(ChannelOption.TCP_NODELAY,
-                                                                                                                                                                                               true);
-
+            bootstrap.group(bossGroup, workerGroup)//
+                     .channel(NioServerSocketChannel.class)//
+                     .childHandler(new GearmanServerInitializer(networkManager, serverConfiguration.isSSLEnabled()))//
+                     .option(ChannelOption.SO_KEEPALIVE, true)//
+                     .option(ChannelOption.SO_REUSEADDR, true)//
+                     .option(ChannelOption.TCP_NODELAY, true);//
             bootstrap.bind(serverConfiguration.getPort()).sync().channel().closeFuture().sync();
-
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
