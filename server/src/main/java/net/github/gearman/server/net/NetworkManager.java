@@ -1,5 +1,7 @@
 package net.github.gearman.server.net;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import net.github.gearman.common.packets.request.GetStatus;
 import net.github.gearman.common.packets.request.OptionRequest;
 import net.github.gearman.common.packets.request.SubmitJob;
 import net.github.gearman.common.packets.response.EchoResponse;
+import net.github.gearman.common.packets.response.ErrorResponse;
 import net.github.gearman.common.packets.response.JobAssign;
 import net.github.gearman.common.packets.response.JobAssignUniq;
 import net.github.gearman.common.packets.response.JobCreated;
@@ -123,6 +126,7 @@ public class NetworkManager {
     @Metered
     public void createJob(SubmitJob packet, Channel channel) {
         EngineClient client = findOrCreateClient(channel);
+
         String funcName = packet.getFunctionName();
         String uniqueID = packet.getUniqueId();
         byte[] data = packet.getData();
@@ -141,6 +145,7 @@ public class NetworkManager {
 
         // This could return an existing job, or the newly generated one
         Job tempJob = new Job(funcName, uniqueID, data, priority, isBackground, timeToRunDate);
+
         if (timeToRunCronExpression != null) {
             final CronJob cronJob = new CronJob(timeToRunCronExpression, tempJob);
             cronJob.setJobManage(jobManager);
@@ -152,22 +157,22 @@ public class NetworkManager {
                     client.send(createJobCreatedPacket(cronJob));
                 }
             } catch (InitException e) {
-                // TODO: Send a failure / error packet?
+                client.send(createJobErrorPacket(cronJob, e));
             }
 
         } else {
             final Job inputJob = tempJob;
             try {
                 Job storedJob = jobManager.storeJobForClient(inputJob, client);
-
                 if (storedJob != null) {
                     client.setCurrentJob(storedJob);
                     client.send(createJobCreatedPacket(storedJob));
                 } else {
-                    // TODO: send a failure/error packet?
+                    client.send(createJobErrorPacket(storedJob,
+                                                     new Exception("call jobManager storeJobForClient return null")));
                 }
             } catch (EnqueueException e) {
-                // TODO: Send a failure / error packet?
+                client.send(createJobErrorPacket(inputJob, e));
             }
         }
 
@@ -262,6 +267,13 @@ public class NetworkManager {
 
     public final Packet createJobCreatedPacket(Job job) {
         return new JobCreated(job.getJobHandle());
+    }
+
+    public final Packet createJobErrorPacket(Job job, Throwable e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        return new ErrorResponse(job.getFunctionName(), job.getUniqueID(), sw.getBuffer().toString().getBytes());
     }
 
     public final Packet createWorkStatusPacket(Job job) {

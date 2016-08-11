@@ -1,60 +1,52 @@
 package net.github.gearman.common.packets.response;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.common.primitives.Ints;
-
-import net.github.gearman.common.packets.request.EchoRequest;
 import net.github.gearman.constants.GearmanConstants;
 import net.github.gearman.constants.PacketType;
 
 public class ErrorResponse extends ResponsePacket {
 
-    private final byte[] data;
+    private final AtomicReference<String> taskName, jobId;
 
-    public ErrorResponse(String data){
+    private final byte[]                  errorMessage;
+
+    private final int                     size;
+
+    public ErrorResponse(String function, String unique_id, byte[] errorMessage){
         this.type = PacketType.ERROR;
-        byte[] dataBytes = data.getBytes(GearmanConstants.CHARSET);
-        this.data = dataBytes.clone();
+        this.taskName = new AtomicReference<>(function);
+        this.jobId = new AtomicReference<>(unique_id);
+        this.errorMessage = errorMessage.clone();
+        this.size = function.length() + 1 + unique_id.length() + 1 + errorMessage.length;
     }
 
-    public ErrorResponse(byte[] data){
-        super(data);
+    public ErrorResponse(byte[] pktdata){
+        super(pktdata);
+        taskName = new AtomicReference<>();
+        jobId = new AtomicReference<>();
         int pOff = 0;
-        this.data = Arrays.copyOfRange(rawdata, pOff, rawdata.length);
+        pOff = parseString(pOff, taskName);
+        pOff = parseString(pOff, jobId);
+        errorMessage = Arrays.copyOfRange(rawdata, pOff, rawdata.length);
+        this.size = rawdata.length;
         this.type = PacketType.ERROR;
     }
 
     @Override
     public byte[] toByteArray() {
-        return concatByteArrays(getHeader(), data);
+        byte[] metadata = stringsToTerminatedByteArray(taskName.get(), jobId.get());
+        return concatByteArrays(getHeader(), metadata, errorMessage);
     }
 
     @Override
     public int getPayloadSize() {
-        return data.length;
+        return size;
     }
 
-    public byte[] getData() {
-        return data;
-    }
-
-    public static void main(String[] args) {
-
-        ErrorResponse error = new ErrorResponse("Ok");
-        byte[] bytes = error.toByteArray();
-
-        ErrorResponse errorOut = new ErrorResponse(bytes);
-        try {
-            byte[] errorInput = "Ok".getBytes();
-            System.out.println(errorInput);
-            System.out.println(new String(errorOut.getData(), "utf-8"));
-        } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
+    public String getErrorMessage() {
+        return new String(errorMessage, GearmanConstants.CHARSET);
     }
 
 }

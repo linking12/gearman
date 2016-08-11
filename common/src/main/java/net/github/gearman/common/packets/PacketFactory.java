@@ -21,6 +21,7 @@ import net.github.gearman.common.packets.request.ResetAbilities;
 import net.github.gearman.common.packets.request.SetClientId;
 import net.github.gearman.common.packets.request.SubmitJob;
 import net.github.gearman.common.packets.response.EchoResponse;
+import net.github.gearman.common.packets.response.ErrorResponse;
 import net.github.gearman.common.packets.response.JobAssign;
 import net.github.gearman.common.packets.response.JobAssignUniq;
 import net.github.gearman.common.packets.response.JobCreated;
@@ -121,6 +122,7 @@ public class PacketFactory {
                 return new OptionRequest(packetBytes);
 
             case ERROR:
+                return new ErrorResponse(packetBytes);
             default:
                 LOG.error("Unhandled type: ", messagetype);
                 return null;

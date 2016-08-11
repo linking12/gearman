@@ -14,6 +14,7 @@ import net.github.gearman.common.client.AbstractGearmanClient;
 import net.github.gearman.common.packets.Packet;
 import net.github.gearman.common.packets.request.GetStatus;
 import net.github.gearman.common.packets.request.SubmitJob;
+import net.github.gearman.common.packets.response.ErrorResponse;
 import net.github.gearman.common.packets.response.JobCreated;
 import net.github.gearman.common.packets.response.StatusRes;
 import net.github.gearman.common.packets.response.WorkCompleteResponse;
@@ -120,6 +121,10 @@ public class NetworkGearmanClient extends AbstractGearmanClient {
                             LOG.debug("Received warning for job " + ww.getJobHandle());
                             handleWorkWarning(ww.getJobHandle(), ww.getData());
                             break;
+                        case ERROR:
+                            ErrorResponse er = (ErrorResponse) result;
+                            LOG.debug("Received error for job " + er.getErrorMessage());
+                            break;
                         default:
                             LOG.info("Unexpected message: " + result.getType());
                             break;
@@ -152,6 +157,11 @@ public class NetworkGearmanClient extends AbstractGearmanClient {
                     LOG.debug("Created future job %s\n", jobHandle);
                     return jobHandle;
                 }
+                if (response.getPacket().getType() == PacketType.ERROR) {
+                    String errorMessage = ((ErrorResponse) response.getPacket()).getErrorMessage();
+                    LOG.debug(String.format("Created future job %s\n", errorMessage));
+                    return errorMessage;
+                }
             }
         } catch (NoServersAvailableException nsae) {
             LOG.warn("No servers available to submit the job.");
@@ -175,6 +185,11 @@ public class NetworkGearmanClient extends AbstractGearmanClient {
                     String jobHandle = ((JobCreated) response.getPacket()).getJobHandle();
                     LOG.debug("Created future job %s\n", jobHandle);
                     return jobHandle;
+                }
+                if (response.getPacket().getType() == PacketType.ERROR) {
+                    String errorMessage = ((ErrorResponse) response.getPacket()).getErrorMessage();
+                    LOG.debug(String.format("Created future job %s\n", errorMessage));
+                    return errorMessage;
                 }
             }
         } catch (NoServersAvailableException nsae) {
@@ -206,6 +221,11 @@ public class NetworkGearmanClient extends AbstractGearmanClient {
                     String jobHandle = ((JobCreated) response.getPacket()).getJobHandle();
                     LOG.debug(format("Created background job %s, with priority %s\n", jobHandle, priority.toString()));
                     return jobHandle;
+                }
+                if (response.getPacket().getType() == PacketType.ERROR) {
+                    String errorMessage = ((ErrorResponse) response.getPacket()).getErrorMessage();
+                    LOG.debug(String.format("Created future job %s\n", errorMessage));
+                    return errorMessage;
                 }
             }
         } catch (NoServersAvailableException nsae) {
@@ -265,10 +285,16 @@ public class NetworkGearmanClient extends AbstractGearmanClient {
 
                 // If we get back a JOB_CREATED packet, we can continue
                 // otherwise try the next job manager
-                if (result != null && result.getType() == PacketType.JOB_CREATED) {
-                    LOG.debug("Created job " + ((JobCreated) result).getJobHandle());
+                if (result != null
+                    && (result.getType() == PacketType.JOB_CREATED || result.getType() == PacketType.ERROR)) {
+                    if (result instanceof JobCreated) {
+                        LOG.debug("Created job " + ((JobCreated) result).getJobHandle());
+                    } else if (result instanceof ErrorResponse) {
+                        LOG.debug("Created job " + ((ErrorResponse) result).getErrorMessage());
+                    }
                     return new ServerResponse(connection, result);
                 }
+
             } catch (IOException ioe) {
                 LOG.error("Connection to " + connection.toString() + " flaky, marking as bad.");
             }
