@@ -9,7 +9,7 @@ jobPersistenceEngine:
     port: 3306
     dbName: gearman
     user: root
-    password: 1234
+    password: 899899AbC
     table: gearman_jobs_00
 cronJobpersistenceEngine:
   engine: mysql
@@ -18,7 +18,7 @@ cronJobpersistenceEngine:
     port: 3306
     dbName: gearman
     user: root
-    password: 1234
+    password: 899899AbC
     table: gearman_Cronjobs_00
 exceptionStorageEngine:
   engine: mysql
@@ -27,5 +27,5 @@ exceptionStorageEngine:
     port: 3306
     dbName: gearman
     user: root
-    password: 1234
+    password: 899899AbC
     table: gearman_Exception_00
