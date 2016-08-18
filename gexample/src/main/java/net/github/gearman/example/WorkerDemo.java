@@ -23,8 +23,7 @@ public class WorkerDemo {
             String function = job.getFunctionName();
             LOG.debug("Got data for function " + function);
             ArrayUtils.reverse(data);
-            // return data;
-            throw new java.lang.IllegalArgumentException("testadfasdfasdfasdf");
+            return data;
 
         }
     }
