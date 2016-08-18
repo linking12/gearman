@@ -2,29 +2,21 @@ package net.github.gearman.server;
 
 import java.io.InputStream;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.yaml.snakeyaml.Yaml;
 
 import net.github.gearman.server.config.DefaultServerConfiguration;
 import net.github.gearman.server.config.GearmanServerConfiguration;
 import net.github.gearman.server.net.ServerListener;
+import net.github.gearman.server.web.WebListener;
 
-@SpringBootApplication
-public class GearmanDaemon implements CommandLineRunner {
+public class GearmanDaemon {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GearmanDaemon.class);
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(GearmanDaemon.class);
 
-    public static void main(String[] args) {
-        SpringApplication.run(GearmanDaemon.class, args);
-    }
-
-    @Override
-    public void run(String... args) throws Exception {
+    public static void main(String... args) {
         final String configFile;
+
         if (args.length != 1) {
             configFile = "config.yml";
         } else {
@@ -33,16 +25,16 @@ public class GearmanDaemon implements CommandLineRunner {
 
         final GearmanServerConfiguration serverConfiguration = loadFromConfigOrGenerateDefaultConfig(configFile);
         final ServerListener serverListener = new ServerListener(serverConfiguration);
-
+        final WebListener webListener = new WebListener(serverConfiguration);
         try {
+            webListener.start();
             serverListener.start();
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(-1);
         }
     }
 
-    private GearmanServerConfiguration loadFromConfigOrGenerateDefaultConfig(final String configFile) {
+    private static GearmanServerConfiguration loadFromConfigOrGenerateDefaultConfig(final String configFile) {
         GearmanServerConfiguration serverConfiguration = null;
         try (InputStream in = GearmanDaemon.class.getClassLoader().getResourceAsStream(configFile)) {
             Yaml yaml = new Yaml();
