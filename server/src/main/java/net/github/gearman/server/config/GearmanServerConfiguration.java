@@ -15,7 +15,6 @@ import net.github.gearman.engine.metrics.MetricsEngine;
 import net.github.gearman.engine.metrics.QueueMetrics;
 import net.github.gearman.engine.queue.factories.cronjob.CronJobQueueFactory;
 import net.github.gearman.engine.queue.factories.job.JobQueueFactory;
-import net.github.gearman.engine.storage.ExceptionStorageEngine;
 import net.github.gearman.engine.util.LocalJobHandleFactory;
 import net.github.gearman.engine.util.LocalUniqueIdFactory;
 import net.github.gearman.server.util.JobQueueMonitor;

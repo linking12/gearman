@@ -15,9 +15,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import net.github.gearman.engine.metrics.QueueMetrics;
-import net.github.gearman.server.common.Frequency;
-import net.github.gearman.server.common.SampleMethod;
-import net.github.gearman.server.common.TimeSeries;
 
 public class SnapshottingJobQueueMonitor implements JobQueueMonitor {
 
@@ -123,22 +120,6 @@ public class SnapshottingJobQueueMonitor implements JobQueueMonitor {
         }
 
         systemSnapshots.add(currentSnapshot);
-    }
-
-    private long sumOfJobsOccurringInOrAfter(ImmutableMap<Integer, Long> counts, int threshold) {
-        long sum = 0L;
-
-        for (int hoursFromNow : counts.keySet()) {
-            if (hoursFromNow >= threshold) {
-                sum += counts.get(hoursFromNow);
-            }
-        }
-
-        return sum;
-    }
-
-    private TimeSeries fiveMinuteAverage(TimeSeries original) {
-        return original.downSample(Frequency.of(5, TimeUnit.MINUTES), SampleMethod.MEAN);
     }
 
     public ImmutableMap<String, JobQueueMetrics> getSnapshots() {
