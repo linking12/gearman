@@ -30,7 +30,7 @@ public class WebListener {
         sh.setInitParameter("com.sun.jersey.config.property.packages", "net.github.gearman.server.web");
         sh.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
 
-        Server server = new Server(8080);
+        Server server = new Server(serverConfiguration.getHttpPort());
         ServletContextHandler context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
         context.addEventListener(new GuiceServletContextListener() {
 
