@@ -33,12 +33,13 @@ public class RESTFulResource {
     @GET
     @Path("/totalData")
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Long> getHTMLData(@PathParam("name") String name) {
-        Map<String, Long> dashboard = Maps.newHashMap();
+    public Map<String, Object> getHTMLData(@PathParam("name") String name) {
+        Map<String, Object> dashboard = Maps.newHashMap();
         dashboard.put("totalJobsPending", status.getTotalJobsPending());
         dashboard.put("totalJobsProcessed", status.getTotalJobsProcessed());
         dashboard.put("totalJobsQueued", status.getTotalJobsQueued());
         dashboard.put("workerCount", status.getWorkerCount());
+        dashboard.put("jobQueues", status.getJobQueues());
         return dashboard;
     }
 
