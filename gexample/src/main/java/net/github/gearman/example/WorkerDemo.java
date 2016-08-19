@@ -31,15 +31,32 @@ public class WorkerDemo {
     public static void main(String... args) {
         try {
             for (int i = 0; i < 5; i++) {
-                NetworkGearmanWorker worker = new NetworkGearmanWorker.Builder().withConnection(new Connection("localhost",
-                                                                                                               4730)).build();
-
-                worker.registerCallback("reverse" + i, new ReverseFunction());
-
-                worker.doWork();
+                Runnable task = new WorkThread("reverse" + i);
+                Thread workThread = new Thread(task);
+                workThread.start();
             }
         } catch (Exception e) {
             LOG.error("oops!");
         }
+    }
+
+    static class WorkThread implements Runnable {
+
+        private final String functionName;
+
+        public WorkThread(String functionName){
+            this.functionName = functionName;
+        }
+
+        @Override
+        public void run() {
+            NetworkGearmanWorker worker = new NetworkGearmanWorker.Builder().withConnection(new Connection("localhost",
+                                                                                                           4730)).build();
+            worker.registerCallback(functionName, new ReverseFunction());
+
+            worker.doWork();
+
+        }
+
     }
 }
