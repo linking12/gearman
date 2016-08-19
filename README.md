@@ -19,7 +19,7 @@ Gearman Client API，Gearman Worker API，Gearman Job Server都是由gearman本�
 *   Metrics监控
 *   支持原生的Gearman协议，未对协议进行破坏
 *   Cron任务使用quartz来进行调度，且每一次调度都会进行一次持久化，保证每一次调度不会丢失，确保一定执行
-
+*   worker使用拉的方式进行获取任务，对Job Server无性能影响
 ##如何使用
 * Server:直接运行Main函数 net.github.gearman.server.GearmanDaemon
 * Work: 见gexample下的WorkDemo
