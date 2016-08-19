@@ -12,7 +12,7 @@ worker：请求的处理者（可以是C、PHP、Java、Perl等等）
 Gearman Client API，Gearman Worker API，Gearman Job Server都是由gearman本身提供，我们在应用中只需要调用即可。目前client与worker api都很丰富。
 
 #Gearman Java 实现
-由于Gearman的JobServer不支持Cron任务，且Client Api和 Worker Api比较冗余且复杂，故而对Gearman server，client，work的java实现
+由于Gearman的JobServer不支持Cron任务，且Client Api和 Worker Api比较冗余且复杂，故而对Gearman server，client，work使用java进行重新实现
 功能有：
 *   存储引擎支持Mysql，Redis（主要支持Mysql）
 *   支持Cron的任务提交
