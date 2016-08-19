@@ -7,7 +7,7 @@ Job Server：请求的调度者，负责将client的请求转发给相应的work
 
 worker：请求的处理者（可以是C、PHP、Java、Perl等等）
 ##gearman是如何工作的
-http://img2.tuicool.com/UFVzeqi.png!web
+https://github.com/linking12/gearman/blob/master/%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86.png
 
 #Gearman Java Implementation
 对Gearman server，client，work的java实现
