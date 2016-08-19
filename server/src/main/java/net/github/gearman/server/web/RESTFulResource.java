@@ -75,7 +75,7 @@ public class RESTFulResource {
             queue.put("HighPriorityJobs", jobQueueStatusView.getHighPriorityJobsCount());
             queue.put("MidPriorityJobs", jobQueueStatusView.getMidPriorityJobsCount());
             queue.put("LowPriorityJobs", jobQueueStatusView.getLowPriorityJobsCount());
-            queue.put("Worke Register", jobQueueStatusView.getWorkerCount(queueName));
+            queue.put("Worker Register", jobQueueStatusView.getWorkerCount(queueName));
             queues.add(queue);
         }
         return queues;
