@@ -39,8 +39,10 @@ public class ClientDemo {
             client.registerEventListener(eventListener);
             try {
                 String cron = String.format("*/%s * * * * ?", 10);
-                String result = client.submitFutureJob("reverse", data, cron);
-                System.err.println("Result: " + new String(result));
+                for (int i = 0; i < 5; i++) {
+                    String result = client.submitFutureJob("reverse" + i, data, cron);
+                    System.err.println("Result: " + new String(result));
+                }
             } catch (JobSubmissionException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

@@ -30,13 +30,14 @@ public class WorkerDemo {
 
     public static void main(String... args) {
         try {
-            byte data[] = "This is a test".getBytes();
-            NetworkGearmanWorker worker = new NetworkGearmanWorker.Builder().withConnection(new Connection("localhost",
-                                                                                                           4730)).build();
+            for (int i = 0; i < 5; i++) {
+                NetworkGearmanWorker worker = new NetworkGearmanWorker.Builder().withConnection(new Connection("localhost",
+                                                                                                               4730)).build();
 
-            worker.registerCallback("reverse", new ReverseFunction());
+                worker.registerCallback("reverse" + i, new ReverseFunction());
 
-            worker.doWork();
+                worker.doWork();
+            }
         } catch (Exception e) {
             LOG.error("oops!");
         }
