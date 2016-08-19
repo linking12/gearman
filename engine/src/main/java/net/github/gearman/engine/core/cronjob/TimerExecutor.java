@@ -25,13 +25,13 @@ public class TimerExecutor implements org.quartz.Job {
         try {
             job = (CronJob) context.getScheduler().getContext().get(context.getJobDetail().getKey().getName());
             JobManager jobManager = job.getJobManage();
-            JobQueue jobQueue = jobManager.getOrCreateJobQueue(job.getFunctionName());
-            String jobId = substringBefore(job.getUniqueID(), "_").concat("_") + job.getTimes().getAndIncrement();
-            String jobHandler = substringBefore(job.getJobHandle(), "_").concat("_") + job.getTimes().getAndIncrement();
+            int order = job.getTimes().getAndIncrement();
+            String jobId = substringBefore(job.getUniqueID(), "_").concat("_") + order;
+            String jobHandler = substringBefore(job.getJobHandle(), "_").concat("_") + order;
             job.setUniqueID(jobId);
             job.setJobHandle(jobHandler);
             Job enqueueJob = new Job(job);
-            jobQueue.enqueue(enqueueJob);
+            jobManager.storeJob(enqueueJob);
             LOG.info("[TimerExecutor]: jobId:" + job.getUniqueID() + ", fireTime:"
                      + context.getFireTime().toLocaleString() + " reenqueue ");
         } catch (Throwable e) {

@@ -39,7 +39,15 @@ public class RESTFulResource {
         dashboard.put("totalJobsProcessed", status.getTotalJobsProcessed());
         dashboard.put("totalJobsQueued", status.getTotalJobsQueued());
         dashboard.put("workerCount", status.getWorkerCount());
+        dashboard.put("maxHeapSize", status.getMaxHeapSize());
+        dashboard.put("usedMemory", status.getUsedMemory());
+        dashboard.put("heapSize", status.getHeapSize());
+        dashboard.put("heapUsed", status.getHeapUsed());
+        dashboard.put("memoryUsage", status.getMemoryUsage());
         dashboard.put("jobQueues", status.getJobQueues());
+        // dashboard.put("systemSnapshot", status.getSystemSnapshots());
+        // dashboard.put("allJobQueueSnapshots", status.getAllJobQueueSnapshots());
+        // dashboard.put("latestSystemSnapshot", status.getLatestSystemSnapshot());
         return dashboard;
     }
 

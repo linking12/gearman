@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
+
 import net.github.gearman.engine.metrics.QueueMetrics;
 import net.github.gearman.server.util.JobQueueMetrics;
 import net.github.gearman.server.util.JobQueueMonitor;
@@ -117,6 +119,15 @@ public class StatusView {
         } else {
             return new JobQueueMetrics();
         }
+    }
+
+    public List<JobQueueMetrics> getAllJobQueueSnapshots() {
+        Map<String, JobQueueMetrics> snapshotMap = jobQueueMonitor.getSnapshots();
+        List<JobQueueMetrics> jobQueueSnapshots = Lists.newArrayList();
+        for (Map.Entry<String, JobQueueMetrics> entry : snapshotMap.entrySet()) {
+            jobQueueSnapshots.add(entry.getValue());
+        }
+        return jobQueueSnapshots;
     }
 
     public long getMaxHeapSize() {
