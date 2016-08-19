@@ -9,6 +9,7 @@ worker：请求的处理者（可以是C、PHP、Java、Perl等等）
 ##gearman是如何工作的
 ![工作原理](https://github.com/linking12/gearman/blob/master/%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86.png "原理")
 
+Gearman Client API，Gearman Worker API，Gearman Job Server都是由gearman本身提供，我们在应用中只需要调用即可。目前client与worker api都很丰富。
 
 #Gearman Java Implementation
 对Gearman server，client，work的java实现
