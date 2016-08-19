@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import net.github.gearman.common.Job;
 import net.github.gearman.engine.core.JobManager;
-import net.github.gearman.engine.queue.JobQueue;
 
 /**
  * 定时执行器,抽象类;
